@@ -37,7 +37,7 @@ int main(int argc, char **argv){
 		return 0;
 	}
 
-	int idExec, idLeg, idJud;
+	pid_t idExec, idLeg, idJud;
 
 	// Init Executive
 	if((idExec = fork()) == 0){
@@ -57,6 +57,43 @@ int main(int argc, char **argv){
 		execvp(nargv[0], nargv);
 	}
 
+	// Here starts the press work
+	// Buffer to read from pipe
+	char buf[PIPE_BUF];
+
+	// Pipe file descriptor
+	int pfd = open(PRESS_NAME, O_RDONLY);
+
+	while(day < daysLen){
+		day++;
+
+		// Reads from pipe and signals semaphore
+		// to inform writer that his input has been read
+		int nBytes = read(fd, buf, sizeof(buf));
+		sem_post(syncSem);
+		if(nBytes == 0){
+			fprintf("All writers have closed their pipes\n");
+			break;
+		}
+
+		// Publish headline
+		printf("Dia %d: %s\n", day, buf);
+
+		// Send signal to processes informing a day has passed
+	}
 	
-	
+	// Close pipe and semaphore
+	close(pfd);
+	sem_close(syncSem);
+
+	// Wait for the other processes to terminate
+	int status;
+	waitpid(idExec, &status, 0);
+	waitpid(idLeg, &status, 0);
+	waitpid(idJud, &status, 0);
+
+	// Unlink semaphore
+	sem_unlink(PRESS_SYNC_SEM);
+
+	return 0;
 }
