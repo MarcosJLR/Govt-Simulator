@@ -13,7 +13,12 @@
 #include "prensa.h"
 #include "rwoper.h"
 
-int writeToPress(int fd, char *buf, int nBytes, sem_t *syncSem){	
+int writeToPress(int fd, char *buf, int nBytes, sem_t *syncSem){
+	if(nBytes >= PIPE_BUF){
+		fprintf(stderr, "Headline is too long!\n");
+		return 0;
+	}
+
 	flock(fd, LOCK_EX);
 	int wBytes = write(fd, buf, nBytes);
 	sem_wait(syncSem);
