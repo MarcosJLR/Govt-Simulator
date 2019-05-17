@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
@@ -69,10 +70,10 @@ int main(int argc, char **argv){
 
 		// Reads from pipe and signals semaphore
 		// to inform writer that his input has been read
-		int nBytes = read(fd, buf, sizeof(buf));
+		int nBytes = read(pfd, buf, sizeof(buf));
 		sem_post(syncSem);
 		if(nBytes == 0){
-			fprintf("All writers have closed their pipes\n");
+			fprintf(stderr, "All writers have closed their pipes\n");
 			break;
 		}
 
