@@ -81,6 +81,9 @@ int main(int argc, char **argv){
 		printf("Dia %d: %s\n", day, buf);
 
 		// Send signal to processes informing a day has passed
+		kill(idExec, SIGUSR1);
+		kill(idLeg, SIGUSR1);
+		kill(idJud, SIGUSR1);
 	}
 	
 	// Close pipe and semaphore
