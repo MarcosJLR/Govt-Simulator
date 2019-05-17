@@ -42,19 +42,19 @@ int main(int argc, char **argv){
 
 	// Init Executive
 	if((idExec = fork()) == 0){
-		char *nargv[] = { "./ejecutivo.o", dir , NULL };
+		char *nargv[] = { "./exec.o", daysLen, dir , NULL };
 		execvp(nargv[0], nargv);
 	}
 
 	// Init Legislative
 	if((idExec = fork()) == 0){
-		char *nargv[] = { "./legislativo.o", dir , NULL };
+		char *nargv[] = { "./legis.o", daysLen, dir , NULL };
 		execvp(nargv[0], nargv);
 	}
 
 	// Init Judicial
 	if((idExec = fork()) == 0){
-		char *nargv[] = { "./judicial.o", dir , NULL };
+		char *nargv[] = { "./judi.o", daysLen, dir , NULL };
 		execvp(nargv[0], nargv);
 	}
 

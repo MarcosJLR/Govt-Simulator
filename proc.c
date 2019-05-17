@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 
-const char * readacc(char *dir){
+const char * getAction(char *dir, int prob){
 	FILE *fp
 	fp= fopen(*dir, r);
 	
