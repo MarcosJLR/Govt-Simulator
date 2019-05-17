@@ -6,4 +6,8 @@
 // Returns number of bytes written to the pipe
 int writeToPress(int fd, char *buf, int nBytes, sem_t *syncSem);
 
+// Extracts an action from the govt plan and saves it in act
+// (at most x lines)
+int readAction(char *filePath, char **action);
+
 #endif

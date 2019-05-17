@@ -9,6 +9,7 @@
 #include <semaphore.h>
 #include <linux/limits.h>
 #include <sys/file.h>
+#include <time.h>
 
 #include "prensa.h"
 #include "rwoper.h"
@@ -25,4 +26,42 @@ int writeToPress(int fd, char *buf, int nBytes, sem_t *syncSem){
 	flock(fd, LOCK_UN);
 
 	return wBytes;
+}
+
+int readAction(char *filePath, char **action){
+	FILE *file = fopen(filePath, "r");
+
+	if(file == NULL){
+		fprintf(stderr, "Couldn't open file\n");
+		return 0;
+	}
+
+	int n = 0;
+	int fd = fileno(file);
+	char *line = NULL;
+	size_t len = 0;
+	srandom(time(NULL));
+
+	flock(fd, LOCK_SH);
+	while(getline(&line, &len, file) != -1){
+		int r = random() % 100;
+		if(r < 20){
+			strcpy(action[n++], line);
+			while(getline(&line, &len, file) != -1){
+				if(strcmp(line, "\n") == 0) break;
+				strcpy(action[n++], line);
+			}
+		}
+		else{
+			while(getline(&line, &len, file) != -1)
+				if(strcmp(line, "\n") == 0) break;
+		}
+		if(n) break;
+	}
+	flock(fd, LOCK_UN);
+	free(line);
+	fclose(file);
+
+	return n;
+
 }
