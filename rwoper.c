@@ -26,3 +26,39 @@ int writeToPress(int fd, char *buf, int nBytes, sem_t *syncSem){
 
 	return wBytes;
 }
+
+const char * getAction(char *dir, int prob){
+	FILE *fp
+	fp= fopen(*dir, r);
+	char act[10000];
+	char ch, chp;
+	int accepted=0;
+	act[0]='\0'
+	int charnum=0;
+	if((rand()%100)<prob){
+		accepted=1;
+	}
+	chp='\0';
+	while((ch = fgetc(fp)) != EOF){
+		if(accepted){
+			if(ch=='\n' && chp=='\n'){
+				fclose(fp);
+				return act;
+			}
+			else{
+				act[charnum]=ch;
+				charnum++;
+			}
+		}
+		else{
+			if(ch=='\n' && chp=='\n'){
+				if((rand()%100)<prob){
+					accepted=1;
+				}
+			}
+		}
+		chp=ch;
+	}
+	fclose(fp);
+	return act;
+}
