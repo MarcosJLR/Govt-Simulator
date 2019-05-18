@@ -100,3 +100,10 @@ const char * getAction(char *dir, int prob){
 	fclose(fp);
 	return act;
 }
+
+void day_signal_handler(int sig){
+	day++;
+	if(day==dayLen){
+		exit(sig);
+	}
+}

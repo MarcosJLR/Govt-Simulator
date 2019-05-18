@@ -12,6 +12,8 @@
 #include "legis.h"
 #include "rwoper.h"
 
+int daysLen, day = 0;
+
 int main(int argc, char **argv){
 	if(argc < 2){
 		fprintf(stderr, "Too few arguments\n");
@@ -19,7 +21,6 @@ int main(int argc, char **argv){
 	}
 	
 	// Number of days the simulation will run
-	int daysLen, day = 0;
 	sscanf(argv[1], "%d", &daysLen);
 	
 	// Path of directory where Govt. files exist

@@ -11,16 +11,17 @@
 
 #include "judi.h"
 #include "rwoper.h"
+int daysLen, day = 0;
 
 int main(int argc, char **argv){
-	int day=0;
+	signal(SIGUSR1, day_signal_handler);
+
 	if(argc < 2){
 		fprintf(stderr, "Too few arguments\n");
 		return 0;
 	}
 	
 	// Number of days the simulation will run
-	int daysLen, day = 0;
 	sscanf(argv[1], "%d", &daysLen);
 	
 	// Path of directory where Govt. files exist
