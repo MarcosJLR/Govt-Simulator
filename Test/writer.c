@@ -27,6 +27,7 @@ int main(){
 		
 	}
 	close(fd);
+	sem_close(syn);
 
 	return 0;
 }
