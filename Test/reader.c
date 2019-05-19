@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
@@ -15,7 +16,8 @@ int main(){
 	if(syn == NULL) return 0;
 
 	for(int i = 0; i < 10; i++){
-		int pid;
+		int pid = getpid();
+		printf("%d %d\n", i, pid);
 		char *argv[] = {"writer.o", NULL};
 		if(fork() == 0)
 			execvp("./writer.o", argv);
@@ -23,11 +25,11 @@ int main(){
 
 	
 	char buf[100];
-	int cnt = 50;
+	int cnt = 100;
 	int fd = open(myfifo, O_RDONLY);
 
-	while(cnt--){
-		printf("%d\n",cnt);
+	while(1){
+		printf("%d\n",cnt--);
 		
 		int nrb = read(fd, buf, sizeof(buf));
 		sem_post(syn);
@@ -36,9 +38,11 @@ int main(){
 
 	}
 	close(fd);
-	//printf("Hola\n");
+	for(int i = 0; i < 10; i++)
+		wait(NULL);
 	sem_close(syn);
 	sem_unlink("mysem");
+	system("rm /tmp/myfifo");
 
 	return 0;
 }

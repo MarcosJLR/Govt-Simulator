@@ -11,7 +11,7 @@
 int main(){
 	int pid = getpid();
 	char buf[100];
-	sem_t *syn = sem_open("mysem", 0);
+	sem_t *syn = sem_open("mysem", O_CREAT, 0666, 0);
 
 	sprintf(buf, "Hola del proceso %d\n", pid);
 	
