@@ -50,7 +50,7 @@ int main(int argc, char **argv){
 
 	// Set signal handler for passing of days and inform press
 	signal(SIGUSR1, signalHandler);
-	sem_post(PRESS_SYNC_SEM);
+	sem_post(syncSem);
 
 
 }

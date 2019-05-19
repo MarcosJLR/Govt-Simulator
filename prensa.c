@@ -83,9 +83,9 @@ int main(int argc, char **argv){
 	
 	// Wait for children to set the signal handler for 
 	// the passing of days
-	sem_wait(PRESS_SYNC_SEM);
-	sem_wait(PRESS_SYNC_SEM);
-	sem_wait(PRESS_SYNC_SEM);
+	sem_wait(syncSem);
+	sem_wait(syncSem);
+	sem_wait(syncSem);
 
 	// Here starts the press work
 	// Buffer to read from pipe
