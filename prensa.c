@@ -11,24 +11,31 @@
 
 #include "prensa.h"
 
+pid_t idExec, idLeg, idJud;
+int daysLen, day = 0;
+char dir[PATH_MAX];
+
 int main(int argc, char **argv){
+	// Needs to have at least the duration of the simulation
 	if(argc < 2){
 		fprintf(stderr, "Too few arguments\n");
 		return 0;
 	}
 	
 	// Number of days the simulation will run
-	int daysLen, day = 0;
 	sscanf(argv[1], "%d", &daysLen);
 	
 	// Path of directory where Govt. files exist
-	char dir[PATH_MAX];
-	dir[0] = '\0';
 	if(argc > 2)
 		strcpy(dir, argv[2]);
 
 	// Named Pipe to retrieve headlines
 	mkfifo(PRESS_NAME, 0666);
+
+	// Named Pipes to send info to child processes
+	mkfifo(EXEC_PIPE_NAME, 0666);
+	mkfifo(LEGIS_PIPE_NAME, 0666);
+	mkfifo(JUD_PIPE_NAME, 0666);
 
 	// Syncronization semaphore
 	sem_unlink(PRESS_SYNC_SEM);
@@ -38,32 +45,54 @@ int main(int argc, char **argv){
 		return 0;
 	}
 
-	pid_t idExec, idLeg, idJud;
-
 	// Init Executive
 	if((idExec = fork()) == 0){
-		char *nargv[] = { "./exec.o", daysLen, dir , NULL };
+		char *nargv[] = { "./exec.o", argv[1], dir , NULL };
 		execvp(nargv[0], nargv);
 	}
 
 	// Init Legislative
-	if((idExec = fork()) == 0){
-		char *nargv[] = { "./legis.o", daysLen, dir , NULL };
+	if((idLeg = fork()) == 0){
+		char *nargv[] = { "./legis.o", argv[1], dir , NULL };
 		execvp(nargv[0], nargv);
 	}
 
 	// Init Judicial
-	if((idExec = fork()) == 0){
-		char *nargv[] = { "./judi.o", daysLen, dir , NULL };
+	if((idJud = fork()) == 0){
+		char *nargv[] = { "./judi.o", argv[1], dir , NULL };
 		execvp(nargv[0], nargv);
 	}
+
+	// Passes the Process ID of the three children to each of them
+	int pfd;
+	char pids[100];
+	sprintf(pids, "%d %d %d\n", idExec, idLeg, idJud);
+	int pidsLen = strlen(pids);
+
+	pfd = open(EXEC_PIPE_NAME, O_WRONLY);
+	write(pfd, pids, pidsLen);
+	close(pfd);
+
+	pfd = open(LEGIS_PIPE_NAME, O_WRONLY);
+	write(pfd, pids, pidsLen);
+	close(pfd);
+	
+	pfd = open(JUD_PIPE_NAME, O_WRONLY);
+	write(pfd, pids, pidsLen);
+	close(pfd);
+	
+	// Wait for children to set the signal handler for 
+	// the passing of days
+	sem_wait(PRESS_SYNC_SEM);
+	sem_wait(PRESS_SYNC_SEM);
+	sem_wait(PRESS_SYNC_SEM);
 
 	// Here starts the press work
 	// Buffer to read from pipe
 	char buf[PIPE_BUF];
 
 	// Pipe file descriptor
-	int pfd = open(PRESS_NAME, O_RDONLY);
+	pfd = open(PRESS_NAME, O_RDONLY);
 
 	while(day < daysLen){
 		day++;
@@ -96,8 +125,21 @@ int main(int argc, char **argv){
 	waitpid(idLeg, &status, 0);
 	waitpid(idJud, &status, 0);
 
-	// Unlink semaphore
+	// Unlink semaphore and delete pipes
 	sem_unlink(PRESS_SYNC_SEM);
+	char rmCom[100];
+	strcpy(rmCom, "rm ");
+	strcat(rmCom, PRESS_NAME);
+	system(rmCom);
+	strcpy(rmCom, "rm ");
+	strcat(rmCom, EXEC_PIPE_NAME);
+	system(rmCom);
+	strcpy(rmCom, "rm ");
+	strcat(rmCom, LEGIS_PIPE_NAME);
+	system(rmCom);
+	strcpy(rmCom, "rm ");
+	strcat(rmCom, JUD_PIPE_NAME);
+	system(rmCom);
 
 	return 0;
 }
