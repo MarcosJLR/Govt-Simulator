@@ -14,21 +14,21 @@
 #include "prensa.h"
 #include "rwoper.h"
 
-int writeToPress(int fd, char *buf, int nBytes, sem_t *syncSem){
+int writeToPress(int fd, char *msg, int nBytes, sem_t *syncSem){
 	if(nBytes >= PIPE_BUF){
 		fprintf(stderr, "Headline is too long!\n");
 		return 0;
 	}
 
 	flock(fd, LOCK_EX);
-	int wBytes = write(fd, buf, nBytes);
+	int wBytes = write(fd, msg, nBytes);
 	sem_wait(syncSem);
 	flock(fd, LOCK_UN);
 
 	return wBytes;
 }
 
-int readAction(char *filePath, char **action){
+int readAction(const char *filePath, char **action){
 	FILE *file = fopen(filePath, "r");
 
 	if(file == NULL){
@@ -101,9 +101,6 @@ const char * getAction(char *dir, int prob){
 	return act;
 }
 
-void day_signal_handler(int sig){
-	day++;
-	if(day==dayLen){
-		exit(sig);
-	}
+int execAction(const int nLines, const char **action){
+
 }

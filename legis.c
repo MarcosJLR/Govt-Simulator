@@ -9,12 +9,14 @@
 #include <semaphore.h>
 #include <linux/limits.h>
 
-#include "legis.h"
+#include "prensa.h"
 #include "rwoper.h"
 
+char action[MAX_ACTION][MAX_ACT_LINE];
 pid_t idExec, idLeg, idJud;
 int daysLen, day = 0;
 char dir[PATH_MAX];
+char planPath[PATH_MAX];
 
 void signalHandler(int sig){
 	if(sig == SIGUSR1){
@@ -37,6 +39,10 @@ int main(int argc, char **argv){
 	// Path of directory where Govt. files exist
 	if(argc > 2)
 		strcpy(dir, argv[2]);
+
+	// Path of Executive govt plan
+	strcpy(planPath, dir);
+	strcat(planPath, "/Legislativo.acc");
 
 	// Pipe to read the other processes ID's
 	int pfd = open(EXEC_PIPE_NAME, O_RDONLY);

@@ -12,9 +12,11 @@
 #include "prensa.h"
 #include "rwoper.h"
 
+char action[MAX_ACTION][MAX_ACT_LINE];
 pid_t idExec, idLeg, idJud;
 int daysLen, day = 0;
 char dir[PATH_MAX];
+char planPath[PATH_MAX];
 
 void signalHandler(int sig){
 	if(sig == SIGUSR1){
@@ -38,6 +40,10 @@ int main(int argc, char **argv){
 	if(argc > 2)
 		strcpy(dir, argv[2]);
 
+	// Path of Executive govt plan
+	strcpy(planPath, dir);
+	strcat(planPath, "/Ejecutivo.acc");
+
 	// Pipe to read the other processes ID's
 	int pfd = open(EXEC_PIPE_NAME, O_RDONLY);
 	char pids[100];
@@ -52,5 +58,38 @@ int main(int argc, char **argv){
 	signal(SIGUSR1, signalHandler);
 	sem_post(syncSem);
 
+	// Pipe to comunicate with press
+	pfd = open(PRESS_NAME, O_WRONLY);
+
+	// Initialize random generator
+	srandom(time(NULL));
+
+	while(1){
+		int nLines = readAction(planPath, action);
+		if(nLines == 0){
+			// Ninguna accion fue escogida
+			char *msg = EXEC_IDDLE_MSG;
+			writeToPress(pfd, msg, sizeof(msg), syncSem);
+		}
+		else{
+			int success = execAction(nLines, action);
+			char msg[MAX_ACT_LINE];
+			if(random() % 100 >= 66) success = 0;
+			if(success){
+				strcpy(msg, action[n-2] + 7);
+				int sz = strlen(msg);
+				writeToPress(pfd, msg, sz, syncSem);		
+			}
+			else{
+				strcpy(msg, action[n-1] + 9);
+				int sz = strlen(msg);
+				writeToPress(pfd, msg, sz, syncSem);
+			}
+		}
+	}
+
+	// Close pipe and semaphore
+	close(pfd);
+	sem_close(syncSem);
 
 }
