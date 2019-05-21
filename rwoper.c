@@ -133,3 +133,21 @@ void cutString(const char *s, char *head, char *tail){
 	head[i] = '\0';
 	strcpy(tail, s + i + 1);
 }
+
+void openGovtFile(FILE **file, const char *path, int mode, int closeOnly){
+	if(*file){
+		int fd = fileno(*file);
+		flock(fd, LOCK_UN);
+		close(*file);
+		*file = NULL;
+	}
+	if(!closeOnly){
+		*file = fopen(path, "ra");
+		int fd = fileno(*file);
+		if(mode)
+			flock(fd, LOCK_EX);
+		else
+			flock(fd, LOCK_SH);
+	}
+}
+
