@@ -22,4 +22,13 @@ int readAction(const char *filePath, char **action);
 // Returns 1 if the action was succesful and 0 if not
 int execAction(int nLines, char **action);
 
+// Stores the first word of s on head and the rest on tail
+void cutString(const char *s, char *head, char *tail);
+
+// Returns 1 if line s was found on file f
+int readFromFile(FILE *f, char *s);
+
+// Writes s into file f
+int writeToFile(FILE *f, char *s);
+
 #endif

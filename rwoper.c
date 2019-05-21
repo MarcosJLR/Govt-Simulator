@@ -122,3 +122,14 @@ int readFromFile(FILE *f, char *s){
 	}
 	else return 0;
 }
+
+void cutString(const char *s, char *head, char *tail){
+	int i, n = strlen(s);
+	for(i = 0; i < n; i++){ 		
+		if(s[i] == ' ')
+			break;
+		head[i] = s[i];
+	}
+	head[i] = '\0';
+	strcpy(tail, s + i + 1);
+}
