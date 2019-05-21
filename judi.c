@@ -18,11 +18,28 @@ int daysLen, day = 0;
 char dir[PATH_MAX];
 char planPath[PATH_MAX];
 
-void signalHandler(int sig){
+void signalHandler(int sig, siginfo_t *info, void *ucontext){
 	if(sig == SIGUSR1){
 		day++;
-		if(day==dayLen){
+		if(day >= daysLen){
 			exit(sig);
+		}
+	}
+	if(sig == SIGUSR2){
+		int ac = (random() % 100 < 50);
+		char ans[2] = (ac ? "Y" : "N");
+		switch(info->si_pid){
+			case idExec:
+				write(fdToExec, ans, 1);
+				break;
+			case idLeg:
+				write(fdToLeg, ans, 1);
+				break;
+			case idJud:
+				write(fdToJud, ans, 1);
+				break;
+			default:
+				break;
 		}
 	}
 }
@@ -55,7 +72,11 @@ int main(int argc, char **argv){
 	sem_t *syncSem = sem_open(PRESS_SYNC_SEM, O_CREAT, 0666, 0);
 
 	// Set signal handler for passing of days and inform press
-	signal(SIGUSR1, signalHandler);
+	struct sigaction *sigH = malloc(sizeof(struct sigaction));
+	sigH->sa_sigaction = &signalHandler;
+	sigH->sa_flags = SA_SIGINFO;
+	sigaction(SIGUSR1, sigH, NULL);
+	sigaction(SIGUSR2, sigH, NULL);
 	sem_post(syncSem);
-
+	free(sigH);
 }
