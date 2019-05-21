@@ -65,7 +65,7 @@ int readAction(const char *filePath, char **action){
 	return n;
 }
 
-const char * getAction(char *dir, int prob){
+/*const char * getAction(char *dir, int prob){
 	FILE *fp
 	fp= fopen(*dir, r);
 	char act[10000];
@@ -99,7 +99,7 @@ const char * getAction(char *dir, int prob){
 	}
 	fclose(fp);
 	return act;
-}
+}*/
 
 int execAction(const int nLines, const char **action){
 
@@ -120,7 +120,7 @@ int readFromFile(FILE *f, char *s){
 			return 1;
 		}
 	}
-	else return 0;
+	return 0;
 }
 
 void cutString(const char *s, char *head, char *tail){
@@ -138,7 +138,7 @@ void openGovtFile(FILE **file, const char *path, int mode, int closeOnly){
 	if(*file){
 		int fd = fileno(*file);
 		flock(fd, LOCK_UN);
-		close(*file);
+		fclose(*file);
 		*file = NULL;
 	}
 	if(!closeOnly){
@@ -150,4 +150,3 @@ void openGovtFile(FILE **file, const char *path, int mode, int closeOnly){
 			flock(fd, LOCK_SH);
 	}
 }
-
