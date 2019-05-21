@@ -104,3 +104,21 @@ const char * getAction(char *dir, int prob){
 int execAction(const int nLines, const char **action){
 
 }
+
+int writeToFile(FILE *f, char *s){
+	int i= fprintf(f,s);
+	return i;
+}
+
+int readFromFile(FILE *f, char *s){
+	int n = 0;
+	char *line = NULL;
+	size_t len = 0;
+
+	while(getline(&line, &len, f) != -1){
+		if(strcmp(line, s) == 0){
+			return 1;
+		}
+	}
+	else return 0;
+}
