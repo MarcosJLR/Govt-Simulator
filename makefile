@@ -14,3 +14,12 @@ paisProcesos: prensa.c $(OBJ)
 clean: 
 	rm paisProcesos
 	rm *.o
+
+.PHONY: cleanPipes
+
+cleanPipes:
+	rm /tmp/GovtPress
+	rm /tmp/Press*
+	rm /tmp/Exec*
+	rm /tmp/Jud*
+	rm /tmp/Leg*

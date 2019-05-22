@@ -61,7 +61,7 @@ int main(int argc, char **argv){
 	if((idExec = fork()) == 0){
 		char *nargv[] = { "./exec.o", argv[1], dir , NULL };
 		if(execvp(nargv[0], nargv) == -1){
-			fprintf("Failed to execute %s because %s\n", nargv[0], strerror(errno));
+			fprintf(stderr, "Failed to execute %s because %s\n", nargv[0], strerror(errno));
 			exit(0);
 		}
 	}
@@ -70,7 +70,7 @@ int main(int argc, char **argv){
 	if((idLeg = fork()) == 0){
 		char *nargv[] = { "./legis.o", argv[1], dir , NULL };
 		if(execvp(nargv[0], nargv) == -1){
-			fprintf("Failed to execute %s because %s\n", nargv[0], strerror(errno));
+			fprintf(stderr, "Failed to execute %s because %s\n", nargv[0], strerror(errno));
 			exit(0);
 		}
 	}
@@ -79,7 +79,7 @@ int main(int argc, char **argv){
 	if((idJud = fork()) == 0){
 		char *nargv[] = { "./judi.o", argv[1], dir , NULL };
 		if(execvp(nargv[0], nargv) == -1){
-			fprintf("Failed to execute %s because %s\n", nargv[0], strerror(errno));
+			fprintf(stderr, "Failed to execute %s because %s\n", nargv[0], strerror(errno));
 			exit(0);
 		}
 	}
