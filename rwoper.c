@@ -151,7 +151,7 @@ void openGovtFile(FILE **file, const char *path, int mode, int closeOnly){
 	}
 }
 
-int execAction(char **act, char *dir, int n, pid_t idExec, pid_t idLeg, pid_t idJud){
+int execAction(char **act, char *dir, int n, pid_t idExec, pid_t idLeg, pid_t idJud, pid_t idJud){
 	FILE *fp;
 	char *com, *inst, *direction;
 	int succes=1;
@@ -182,18 +182,12 @@ int execAction(char **act, char *dir, int n, pid_t idExec, pid_t idLeg, pid_t id
 		else if(strcmp(com, "leer:") == 0){
 			int p;
 			p=readFromFile(fp, inst);
-			if(!p){
-				succes=0;
-				break;
-			}
+			if(!p) return 0;
 		}
 		else if(strcmp(com, "anular:") == 0){
 			int p;
 			p=readFromFile(fp, inst);
-			if(p){
-				succes=0;
-				break;
-			}
+			if(p) return 0;
 		}
 		else if(strcmp(com, "escribir:") == 0){
 			int p;
@@ -206,4 +200,10 @@ int execAction(char **act, char *dir, int n, pid_t idExec, pid_t idLeg, pid_t id
 			
 		}
 	}
+	if(succes){
+		int r = random() % 1000;
+		if(r<666) return 1;
+		else return 0;
+	}
+	return succes;
 }
