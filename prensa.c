@@ -51,6 +51,7 @@ int main(int argc, char **argv){
 
 	// Syncronization semaphore
 	sem_unlink(PRESS_SYNC_SEM);
+	sem_unlink(PRESS_SYNC_SEM2);
 	sem_t *syncSem = sem_open(PRESS_SYNC_SEM, O_CREAT, 0666, 0);
 	if(syncSem == NULL){
 		fprintf(stderr, "Failed to open Semaphore\n");
@@ -149,7 +150,7 @@ int main(int argc, char **argv){
 	waitpid(idJud, &status, 0);
 
 	// Unlink semaphore and delete pipes
-	sem_unlink(PRESS_SYNC_SEM);
+	sem_unlink(PRESS_SYNC_SEM2);
 	char rmCom[100];
 	strcpy(rmCom, "rm ");
 
