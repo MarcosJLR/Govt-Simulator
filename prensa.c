@@ -37,6 +37,17 @@ int main(int argc, char **argv){
 	mkfifo(LEGIS_PIPE_NAME, 0666);
 	mkfifo(JUD_PIPE_NAME, 0666);
 
+	// Named pipes for sibling comunication
+	mkfifo(EXEC_LEG_PIPE, 0666);
+	mkfifo(EXEC_JUD_PIPE, 0666);
+
+	mkfifo(LEG_EXEC_PIPE, 0666);
+	mkfifo(LEG_JUD_PIPE, 0666);
+
+	mkfifo(JUD_EXEC_PIPE, 0666);
+	mkfifo(JUD_LEG_PIPE, 0666);
+
+
 	// Syncronization semaphore
 	sem_unlink(PRESS_SYNC_SEM);
 	sem_t *syncSem = sem_open(PRESS_SYNC_SEM, O_CREAT, 0666, 0);
@@ -129,17 +140,31 @@ int main(int argc, char **argv){
 	sem_unlink(PRESS_SYNC_SEM);
 	char rmCom[100];
 	strcpy(rmCom, "rm ");
-	strcat(rmCom, PRESS_NAME);
+
+	strcpy(rmCom + 3, PRESS_NAME);
+	system(rmCom);	
+	strcpy(rmCom + 3, EXEC_PIPE_NAME);
 	system(rmCom);
-	strcpy(rmCom, "rm ");
-	strcat(rmCom, EXEC_PIPE_NAME);
+	strcpy(rmCom + 3, LEGIS_PIPE_NAME);
 	system(rmCom);
-	strcpy(rmCom, "rm ");
-	strcat(rmCom, LEGIS_PIPE_NAME);
+	strcpy(rmCom + 3, JUD_PIPE_NAME);
 	system(rmCom);
-	strcpy(rmCom, "rm ");
-	strcat(rmCom, JUD_PIPE_NAME);
+
+	strcpy(rmCom + 3, EXEC_LEG_PIPE);
+	system(rmCom);	
+	strcpy(rmCom + 3, EXEC_JUD_PIPE);
 	system(rmCom);
+	
+	strcpy(rmCom + 3, LEG_EXEC_PIPE);
+	system(rmCom);
+	strcpy(rmCom + 3, LEG_JUD_PIPE);
+	system(rmCom);
+	
+	strcpy(rmCom + 3, JUD_EXEC_PIPE);
+	system(rmCom);	
+	strcpy(rmCom + 3, JUD_LEG_PIPE);
+	system(rmCom);
+
 
 	return 0;
 }

@@ -28,18 +28,15 @@ void signalHandler(int sig, siginfo_t *info, void *ucontext){
 	if(sig == SIGUSR2){
 		int ac = (random() % 100 < 50);
 		char ans[2] = (ac ? "Y" : "N");
-		switch(info->si_pid){
-			case idExec:
-				write(fdToExec, ans, 1);
-				break;
-			case idLeg:
-				write(fdToLeg, ans, 1);
-				break;
-			case idJud:
-				write(fdToJud, ans, 1);
-				break;
-			default:
-				break;
+		if(info->si_pid == idExec){
+			int fdToExec = open(JUD_EXEC_PIPE, O_WRONLY); 
+			write(fdToExec, ans, 1);
+			close(fdToExec);
+		}
+		if(info->si_pid == idLeg){
+			int fdToLeg = open(JUD_LEG_PIPE, O_WRONLY); 
+			write(fdToLeg, ans, 1);
+			close(fdToLeg);
 		}
 	}
 }
