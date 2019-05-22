@@ -159,7 +159,6 @@ int aprovalFrom(const char *pipeName, pid_t apID){
 int execAction(int nLines, char **action, char *dir, pid_t idExec, pid_t idLeg, pid_t idJud){
 	FILE *fp;
 	char com[10], inst[MAX_ACT_LINE], direction[PATH_MAX];
-	int success = 1;
 	for(int i = 1; i < nLines-2; i++){
 		cutString(action[i],com,inst);
 		if(strcmp(com, "exclusivo:") == 0){
@@ -185,18 +184,15 @@ int execAction(int nLines, char **action, char *dir, pid_t idExec, pid_t idLeg, 
 			openGovtFile(&fp, direction, 0, 0);
 		}
 		else if(strcmp(com, "leer:") == 0){
-			int p;
-			p=readFromFile(fp, inst);
+			int p = readFromFile(fp, inst);
 			if(!p) return 0;
 		}
 		else if(strcmp(com, "anular:") == 0){
-			int p;
-			p=readFromFile(fp, inst);
+			int p = readFromFile(fp, inst);
 			if(p) return 0;
 		}
 		else if(strcmp(com, "escribir:") == 0){
-			int p;
-			p = writeToFile(fp, inst);
+			int p = writeToFile(fp, inst);
 		}
 		else if(strcmp(com, "aprobación:") == 0){
 			pid_t aproverID;
@@ -230,10 +226,8 @@ int execAction(int nLines, char **action, char *dir, pid_t idExec, pid_t idLeg, 
 						strcpy(pipeName, EXEC_LEG_PIPE);
 				}
 
-				if(!aprovalFrom(pipeName, aproverID)){
-					success = 0;
-					break;
-				}
+				if(!aprovalFrom(pipeName, aproverID))
+					return 0;
 			}
 		}
 		else if(strcmp(com, "reprobación:") == 0){
@@ -268,17 +262,10 @@ int execAction(int nLines, char **action, char *dir, pid_t idExec, pid_t idLeg, 
 						strcpy(pipeName, EXEC_LEG_PIPE);
 				}
 
-				if(aprovalFrom(pipeName, aproverID)){
-					success = 0;
-					break;
-				}
+				if(aprovalFrom(pipeName, aproverID))
+					return 0;
 			}
 		}
 	}
-	if(success){
-		int r = random() % 1000;
-		if(r<666) return 1;
-		else return 0;
-	}
-	return success;
+	return 1;
 }
