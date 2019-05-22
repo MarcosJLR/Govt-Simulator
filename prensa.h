@@ -25,4 +25,22 @@
 #undef JUD_IDDLE_MSG
 #define JUD_IDDLE_MSG "El Tribunal se tomo un receso de un dia"
 
+#undef EXEC_LEG_PIPE
+#define EXEC_LEG_PIPE "/tmp/ExecLeg"
+
+#undef EXEC_JUD_PIPE
+#define EXEC_JUD_PIPE "/tmp/ExecJud"
+
+#undef LEG_EXEC_PIPE
+#define LEG_EXEC_PIPE "/tmp/LegExec"
+
+#undef LEG_JUD_PIPE
+#define LEG_JUD_PIPE "/tmp/LegJud"
+
+#undef JUD_EXEC_PIPE
+#define JUD_EXEC_PIPE "/tmp/JudExec"
+
+#undef JUD_LEG_PIPE
+#define JUD_LEG_PIPE "/tmp/JudLeg"
+
 #endif
