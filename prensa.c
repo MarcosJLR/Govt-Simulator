@@ -107,6 +107,7 @@ int main(int argc, char **argv){
 	sem_wait(syncSem);
 	sem_wait(syncSem);
 	sem_wait(syncSem);
+	sem_close(syncSem);
 
 	// Here starts the press work
 	// Buffer to read from pipe
@@ -114,6 +115,7 @@ int main(int argc, char **argv){
 
 	// Pipe file descriptor
 	pfd = open(PRESS_NAME, O_RDONLY);
+	sem_t *syncSem2 = sem_open(PRESS_SYNC_SEM2, O_CREAT, 0666, 0);
 
 	while(day < daysLen){
 		day++;
@@ -121,7 +123,7 @@ int main(int argc, char **argv){
 		// Reads from pipe and signals semaphore
 		// to inform writer that his input has been read
 		int nBytes = read(pfd, buf, sizeof(buf));
-		sem_post(syncSem);
+		sem_post(syncSem2);
 		if(nBytes == 0){
 			fprintf(stderr, "All writers have closed their pipes\n");
 			break;
@@ -138,7 +140,7 @@ int main(int argc, char **argv){
 	
 	// Close pipe and semaphore
 	close(pfd);
-	sem_close(syncSem);
+	sem_close(syncSem2);
 
 	// Wait for the other processes to terminate
 	int status;

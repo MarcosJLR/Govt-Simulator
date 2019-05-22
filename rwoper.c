@@ -32,7 +32,8 @@ int readAction(const char *filePath, char **action){
 	FILE *file = fopen(filePath, "r");
 
 	if(file == NULL){
-		fprintf(stderr, "Couldn't open file\n");
+
+		fprintf(stderr, "Couldn't open file: %s\n", filePath);
 		return 0;
 	}
 

@@ -61,7 +61,7 @@ int main(int argc, char **argv){
 
 	// Path of Executive govt plan
 	if(strcmp(dir, "\0")==0){
-		strcpy(planPath, "/Ejecutivo.acc");
+		strcpy(planPath, "Ejecutivo.acc");
 	}
 	else{
 		strcpy(planPath, dir);
@@ -86,9 +86,11 @@ int main(int argc, char **argv){
 	sigaction(SIGUSR2, sigH, NULL);
 	sem_post(syncSem);
 	free(sigH);
+	sem_close(syncSem);
 
 	// Pipe to comunicate with press
 	pfd = open(PRESS_NAME, O_WRONLY);
+	sem_t *syncSem2 = sem_open(PRESS_SYNC_SEM2, O_CREAT, 0666, 0);
 
 	// Initialize random generator
 	srandom(time(NULL));
@@ -103,7 +105,7 @@ int main(int argc, char **argv){
 			//writeToPress(pfd, msg, strlen(msg), syncSem);
 			flock(pfd, LOCK_EX);
 			write(pfd, msg, strlen(msg));
-			sem_wait(syncSem);
+			sem_wait(syncSem2);
 			flock(pfd, LOCK_UN);
 		}
 		else{
@@ -113,18 +115,18 @@ int main(int argc, char **argv){
 			if(success){
 				strcpy(msg, action[nLines-2] + 7);
 				int sz = strlen(msg);
-				writeToPress(pfd, msg, sz, syncSem);		
+				writeToPress(pfd, msg, sz, syncSem2);		
 			}
 			else{
 				strcpy(msg, action[nLines-1] + 9);
 				int sz = strlen(msg);
-				writeToPress(pfd, msg, sz, syncSem);
+				writeToPress(pfd, msg, sz, syncSem2);
 			}
 		}
 	}
 
 	// Close pipe and semaphore
 	close(pfd);
-	sem_close(syncSem);
+	sem_close(syncSem2);
 
 }

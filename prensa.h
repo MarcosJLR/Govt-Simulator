@@ -7,6 +7,9 @@
 #undef PRESS_SYNC_SEM
 #define PRESS_SYNC_SEM "/PressSyncSem"
 
+#undef PRESS_SYNC_SEM2
+#define PRESS_SYNC_SEM2 "/PressSyncSem2"
+
 #undef EXEC_PIPE_NAME
 #define EXEC_PIPE_NAME "/tmp/PressExecutive"
 
