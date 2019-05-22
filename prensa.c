@@ -112,15 +112,11 @@ int main(int argc, char **argv){
 	// Buffer to read from pipe
 	char buf[PIPE_BUF];
 
-	printf("Before opening pipe\n");
-
 	// Pipe file descriptor
 	pfd = open(PRESS_NAME, O_RDONLY);
 
 	while(day < daysLen){
 		day++;
-
-		printf("%d\n", day);
 
 		// Reads from pipe and signals semaphore
 		// to inform writer that his input has been read

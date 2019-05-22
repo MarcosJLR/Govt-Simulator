@@ -86,4 +86,44 @@ int main(int argc, char **argv){
 	sem_post(syncSem);
 	free(sigH);
 
+	// Pipe to comunicate with press
+	pfd = open(PRESS_NAME, O_WRONLY);
+
+	// Initialize random generator
+	srandom(time(NULL));
+
+	while(1){
+		int nLines = readAction(planPath, action);
+		if(nLines == 0){
+			// Ninguna accion fue escogida
+			char msg[100];
+			//strcpy(msg, LEGIS_IDDLE_MSG);
+			sprintf(msg,"Hola del Congreso, proceso %d\n", idLeg);
+			//writeToPress(pfd, msg, strlen(msg), syncSem);
+			flock(pfd, LOCK_EX);
+			write(pfd, msg, strlen(msg));
+			sem_wait(syncSem);
+			flock(pfd, LOCK_UN);
+		}
+		else{
+			int success = execAction(nLines, action, dir, idExec, idLeg, idJud);
+			char msg[MAX_ACT_LINE];
+			if(random() % 100 >= 66) success = 0;
+			if(success){
+				strcpy(msg, action[nLines-2] + 7);
+				int sz = strlen(msg);
+				writeToPress(pfd, msg, sz, syncSem);		
+			}
+			else{
+				strcpy(msg, action[nLines-1] + 9);
+				int sz = strlen(msg);
+				writeToPress(pfd, msg, sz, syncSem);
+			}
+		}
+	}
+
+	// Close pipe and semaphore
+	close(pfd);
+	sem_close(syncSem);
+
 }
