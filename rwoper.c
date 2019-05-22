@@ -186,19 +186,13 @@ int execAction(int nLines, char **action, char *dir, pid_t idExec, pid_t idLeg, 
 		}
 		else if(strcmp(com, "leer:") == 0){
 			int p;
-			p = readFromFile(fp, inst);
-			if(!p){
-				success = 0;
-				break;
-			}
+			p=readFromFile(fp, inst);
+			if(!p) return 0;
 		}
 		else if(strcmp(com, "anular:") == 0){
 			int p;
-			p = readFromFile(fp, inst);
-			if(p){
-				success = 0;
-				break;
-			}
+			p=readFromFile(fp, inst);
+			if(p) return 0;
 		}
 		else if(strcmp(com, "escribir:") == 0){
 			int p;
@@ -281,4 +275,10 @@ int execAction(int nLines, char **action, char *dir, pid_t idExec, pid_t idLeg, 
 			}
 		}
 	}
+	if(success){
+		int r = random() % 1000;
+		if(r<666) return 1;
+		else return 0;
+	}
+	return success;
 }
