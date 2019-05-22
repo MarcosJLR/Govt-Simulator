@@ -150,3 +150,60 @@ void openGovtFile(FILE **file, const char *path, int mode, int closeOnly){
 			flock(fd, LOCK_SH);
 	}
 }
+
+int execAction(char **act, char *dir, int n, pid_t idExec, pid_t idLeg, pid_t idJud){
+	FILE *fp;
+	char *com, *inst, *direction;
+	int succes=1;
+	for(int i=1;i<n-2;i++){
+		cutString(action[i],com,inst);
+		if(strcmp(com, "exclusivo:") == 0){
+			if(strcmp(dir, "\0")==0){
+				strcat(direction, inst);
+			}
+			else{
+				strcpy(direction, dir);
+				strcat(direction, "/");
+				strcat(direction, inst);
+			}
+			openGovtFile(&fp, direction, 1, 0);
+		}
+		else if(strcmp(com, "inclusivo:") == 0){
+			if(strcmp(dir, "\0")==0){
+				strcat(direction, inst);
+			}
+			else{
+				strcpy(direction, dir);
+				strcat(direction, "/");
+				strcat(direction, inst);
+			}
+			openGovtFile(&fp, direction, 0, 0);
+		}
+		else if(strcmp(com, "leer:") == 0){
+			int p;
+			p=readFromFile(fp, inst);
+			if(!p){
+				succes=0;
+				break;
+			}
+		}
+		else if(strcmp(com, "anular:") == 0){
+			int p;
+			p=readFromFile(fp, inst);
+			if(p){
+				succes=0;
+				break;
+			}
+		}
+		else if(strcmp(com, "escribir:") == 0){
+			int p;
+			p=writeToFile(fp, inst)
+		}
+		else if(strcmp(com, "aprobación:") == 0){
+			
+		}
+		else if(strcmp(com, "reprobación:") == 0){
+			
+		}
+	}
+}

@@ -55,8 +55,13 @@ int main(int argc, char **argv){
 		strcpy(dir, argv[2]);
 
 	// Path of Executive govt plan
-	strcpy(planPath, dir);
-	strcat(planPath, "/Legislativo.acc");
+	if(strcmp(dir, "\0")==0){
+		strcpy(planPath, "/Legislativo.acc");
+	}
+	else{
+		strcpy(planPath, dir);
+		strcat(planPath, "/Legislativo.acc");
+	}
 
 	// Pipe to read the other processes ID's
 	int pfd = open(EXEC_PIPE_NAME, O_RDONLY);
