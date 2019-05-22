@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <semaphore.h>
 #include <linux/limits.h>
+#include <errno.h>
 
 #include "prensa.h"
 
@@ -59,20 +60,31 @@ int main(int argc, char **argv){
 	// Init Executive
 	if((idExec = fork()) == 0){
 		char *nargv[] = { "./exec.o", argv[1], dir , NULL };
-		execvp(nargv[0], nargv);
+		if(execvp(nargv[0], nargv) == -1){
+			fprintf("Failed to execute %s because %s\n", nargv[0], strerror(errno));
+			exit(0);
+		}
 	}
 
 	// Init Legislative
 	if((idLeg = fork()) == 0){
 		char *nargv[] = { "./legis.o", argv[1], dir , NULL };
-		execvp(nargv[0], nargv);
+		if(execvp(nargv[0], nargv) == -1){
+			fprintf("Failed to execute %s because %s\n", nargv[0], strerror(errno));
+			exit(0);
+		}
 	}
 
 	// Init Judicial
 	if((idJud = fork()) == 0){
 		char *nargv[] = { "./judi.o", argv[1], dir , NULL };
-		execvp(nargv[0], nargv);
+		if(execvp(nargv[0], nargv) == -1){
+			fprintf("Failed to execute %s because %s\n", nargv[0], strerror(errno));
+			exit(0);
+		}
 	}
+
+	printf("Before opening pipes %d\n", getpid());
 
 	// Passes the Process ID of the three children to each of them
 	int pfd;
@@ -92,6 +104,8 @@ int main(int argc, char **argv){
 	write(pfd, pids, pidsLen);
 	close(pfd);
 	
+	printf("Before waiting\n");
+
 	// Wait for children to set the signal handler for 
 	// the passing of days
 	sem_wait(syncSem);
@@ -102,11 +116,15 @@ int main(int argc, char **argv){
 	// Buffer to read from pipe
 	char buf[PIPE_BUF];
 
+	printf("Before opening pipe\n");
+
 	// Pipe file descriptor
 	pfd = open(PRESS_NAME, O_RDONLY);
 
 	while(day < daysLen){
 		day++;
+
+		printf("%d\n", day);
 
 		// Reads from pipe and signals semaphore
 		// to inform writer that his input has been read

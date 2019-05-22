@@ -5,7 +5,7 @@
 #define PRESS_NAME "/tmp/GovtPress"
 
 #undef PRESS_SYNC_SEM
-#define PRESS_SYNC_SEM "/tmp/PressSyncSem"
+#define PRESS_SYNC_SEM "/PressSyncSem"
 
 #undef EXEC_PIPE_NAME
 #define EXEC_PIPE_NAME "/tmp/PressExecutive"
