@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <semaphore.h>
 #include <linux/limits.h>
+#include <time.h>
 
 #include "prensa.h"
 #include "rwoper.h"
@@ -27,7 +28,11 @@ void signalHandler(int sig, siginfo_t *info, void *ucontext){
 	}
 	if(sig == SIGUSR2){
 		int ac = (random() % 100 < 50);
-		char ans[2] = (ac ? "Y" : "N");
+		char ans[2];
+		if(ac)
+			strcpy(ans, "Y");
+		else
+			strcpy(ans, "N");
 		if(info->si_pid == idLeg){
 			int fdToLeg = open(EXEC_LEG_PIPE, O_WRONLY); 
 			write(fdToLeg, ans, 1);
@@ -100,12 +105,12 @@ int main(int argc, char **argv){
 			char msg[MAX_ACT_LINE];
 			if(random() % 100 >= 66) success = 0;
 			if(success){
-				strcpy(msg, action[n-2] + 7);
+				strcpy(msg, action[nLines-2] + 7);
 				int sz = strlen(msg);
 				writeToPress(pfd, msg, sz, syncSem);		
 			}
 			else{
-				strcpy(msg, action[n-1] + 9);
+				strcpy(msg, action[nLines-1] + 9);
 				int sz = strlen(msg);
 				writeToPress(pfd, msg, sz, syncSem);
 			}

@@ -101,10 +101,6 @@ int readAction(const char *filePath, char **action){
 	return act;
 }*/
 
-int execAction(const int nLines, const char **action){
-
-}
-
 int writeToFile(FILE *f, char *s){
 	int i= fprintf(f,s);
 	return i;
@@ -151,11 +147,20 @@ void openGovtFile(FILE **file, const char *path, int mode, int closeOnly){
 	}
 }
 
-int execAction(char **act, char *dir, int n, pid_t idExec, pid_t idLeg, pid_t idJud){
+int aprovalFrom(const char *pipeName, pid_t apID){
+	char ans[2];
+	kill(apID, SIGUSR2);
+	int pfd = open(pipeName, O_RDONLY);
+	read(pfd, ans, 1);
+	close(pfd);
+	return (ans[0] == 'Y');
+}
+
+int execAction(int nLines, char **action, char *dir, pid_t idExec, pid_t idLeg, pid_t idJud){
 	FILE *fp;
-	char *com, *inst, *direction;
-	int succes=1;
-	for(int i=1;i<n-2;i++){
+	char com[10], inst[MAX_ACT_LINE], direction[PATH_MAX];
+	int success = 1;
+	for(int i = 1; i < nLines-2; i++){
 		cutString(action[i],com,inst);
 		if(strcmp(com, "exclusivo:") == 0){
 			if(strcmp(dir, "\0")==0){
@@ -181,29 +186,99 @@ int execAction(char **act, char *dir, int n, pid_t idExec, pid_t idLeg, pid_t id
 		}
 		else if(strcmp(com, "leer:") == 0){
 			int p;
-			p=readFromFile(fp, inst);
+			p = readFromFile(fp, inst);
 			if(!p){
-				succes=0;
+				success = 0;
 				break;
 			}
 		}
 		else if(strcmp(com, "anular:") == 0){
 			int p;
-			p=readFromFile(fp, inst);
+			p = readFromFile(fp, inst);
 			if(p){
-				succes=0;
+				success = 0;
 				break;
 			}
 		}
 		else if(strcmp(com, "escribir:") == 0){
 			int p;
-			p=writeToFile(fp, inst)
+			p = writeToFile(fp, inst);
 		}
 		else if(strcmp(com, "aprobación:") == 0){
+			pid_t aproverID;
+
+			if(strcmp(inst, "Congreso\n") == 0)
+				aproverID = idLeg;
+			else if(strcmp(inst, "Tribunal Supremo\n") == 0)
+				aproverID = idJud;
+			else
+				aproverID = idExec;
 			
+			pid_t myPID = getpid();
+			if(aproverID != myPID){
+				char pipeName[PATH_MAX];
+				if(myPID == idExec){
+					if(aproverID == idLeg)
+						strcpy(pipeName, LEG_EXEC_PIPE);
+					else
+						strcpy(pipeName, JUD_EXEC_PIPE);
+				}
+				else if(myPID == idJud){
+					if(aproverID == idLeg)
+						strcpy(pipeName, LEG_JUD_PIPE);
+					else
+						strcpy(pipeName, EXEC_JUD_PIPE);
+				}
+				else if(myPID == idLeg){
+					if(aproverID == idJud)
+						strcpy(pipeName, JUD_LEG_PIPE);
+					else
+						strcpy(pipeName, EXEC_LEG_PIPE);
+				}
+
+				if(!aprovalFrom(pipeName, aproverID)){
+					success = 0;
+					break;
+				}
+			}
 		}
 		else if(strcmp(com, "reprobación:") == 0){
+			pid_t aproverID;
+
+			if(strcmp(inst, "Congreso\n") == 0)
+				aproverID = idLeg;
+			else if(strcmp(inst, "Tribunal Supremo\n") == 0)
+				aproverID = idJud;
+			else
+				aproverID = idExec;
 			
+			pid_t myPID = getpid();
+			if(aproverID != myPID){
+				char pipeName[PATH_MAX];
+				if(myPID == idExec){
+					if(aproverID == idLeg)
+						strcpy(pipeName, LEG_EXEC_PIPE);
+					else
+						strcpy(pipeName, JUD_EXEC_PIPE);
+				}
+				else if(myPID == idJud){
+					if(aproverID == idLeg)
+						strcpy(pipeName, LEG_JUD_PIPE);
+					else
+						strcpy(pipeName, EXEC_JUD_PIPE);
+				}
+				else if(myPID == idLeg){
+					if(aproverID == idJud)
+						strcpy(pipeName, JUD_LEG_PIPE);
+					else
+						strcpy(pipeName, EXEC_LEG_PIPE);
+				}
+
+				if(aprovalFrom(pipeName, aproverID)){
+					success = 0;
+					break;
+				}
+			}
 		}
 	}
 }

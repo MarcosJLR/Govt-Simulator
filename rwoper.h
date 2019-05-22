@@ -20,7 +20,7 @@ int readAction(const char *filePath, char **action);
 
 // Carries out the action in action with nLines lines
 // Returns 1 if the action was succesful and 0 if not
-int execAction(int nLines, const char **action);
+int execAction(int nLines, char **action, char *dir, pid_t idExec, pid_t idLeg, pid_t idJud);
 
 // Stores the first word of s on head and the rest on tail
 void cutString(const char *s, char *head, char *tail);

@@ -27,7 +27,11 @@ void signalHandler(int sig, siginfo_t *info, void *ucontext){
 	}
 	if(sig == SIGUSR2){
 		int ac = (random() % 100 < 50);
-		char ans[2] = (ac ? "Y" : "N");
+		char ans[2];
+		if(ac)
+			strcpy(ans, "Y");
+		else
+			strcpy(ans, "N");
 		if(info->si_pid == idExec){
 			int fdToExec = open(LEG_EXEC_PIPE, O_WRONLY); 
 			write(fdToExec, ans, 1);
