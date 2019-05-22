@@ -84,8 +84,6 @@ int main(int argc, char **argv){
 		}
 	}
 
-	printf("Before opening pipes %d\n", getpid());
-
 	// Passes the Process ID of the three children to each of them
 	int pfd;
 	char pids[100];
@@ -103,8 +101,6 @@ int main(int argc, char **argv){
 	pfd = open(JUD_PIPE_NAME, O_WRONLY);
 	write(pfd, pids, pidsLen);
 	close(pfd);
-	
-	printf("Before waiting\n");
 
 	// Wait for children to set the signal handler for 
 	// the passing of days

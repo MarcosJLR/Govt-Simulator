@@ -68,7 +68,7 @@ int main(int argc, char **argv){
 	}
 
 	// Pipe to read the other processes ID's
-	int pfd = open(EXEC_PIPE_NAME, O_RDONLY);
+	int pfd = open(LEGIS_PIPE_NAME, O_RDONLY);
 	char pids[100];
 	read(pfd, pids, sizeof(pids));
 	close(pfd);

@@ -3,11 +3,17 @@ CFLAGS = -pthread -std=gnu99
 DEPS = prensa.h rwoper.h
 OBJ = exec.o legis.o judi.o
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-
 paisProcesos: prensa.c $(OBJ)
 	$(CC) -o $@ $< $(CFLAGS)
+
+exec.o: exec.c rwoper.c
+	$(CC) -o $@ $^ $(CFLAGS)
+
+legis.o: legis.c rwoper.c
+	$(CC) -o $@ $^ $(CFLAGS)
+
+judi.o: judi.c rwoper.c
+	$(CC) -o $@ $^ $(CFLAGS)
 
 .PHONY: clean
 
