@@ -1,13 +1,13 @@
 CC = gcc
-CFLAGS = -pthread -std=gnu99 -I
+CFLAGS = -pthread -std=gnu99
 DEPS = prensa.h rwoper.h
-OBJ = rwoper.o ejecutivo.o legislativo.o judicial.o
+OBJ = exec.o legis.o judi.o
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 paisProcesos: prensa.c $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
+	$(CC) -o $@ $< $(CFLAGS)
 
 .PHONY: clean
 

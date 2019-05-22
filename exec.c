@@ -101,7 +101,7 @@ int main(int argc, char **argv){
 			writeToPress(pfd, msg, sizeof(msg), syncSem);
 		}
 		else{
-			int success = execAction(nLines, action);
+			int success = execAction(nLines, action, dir, idExec, idLeg, idJud);
 			char msg[MAX_ACT_LINE];
 			if(random() % 100 >= 66) success = 0;
 			if(success){
