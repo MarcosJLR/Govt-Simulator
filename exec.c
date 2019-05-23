@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/file.h>
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
@@ -30,17 +31,17 @@ void signalHandler(int sig, siginfo_t *info, void *ucontext){
 		int ac = (random() % 100 < 50);
 		char ans[2];
 		if(ac)
-			strcpy(ans, "Y");
+			sprintf(ans, "Y");
 		else
-			strcpy(ans, "N");
+			sprintf(ans, "N");
 		if(info->si_pid == idLeg){
 			int fdToLeg = open(EXEC_LEG_PIPE, O_WRONLY); 
-			write(fdToLeg, ans, 1);
+			write(fdToLeg, ans, 2);
 			close(fdToLeg);
 		}
 		if(info->si_pid == idJud){
 			int fdToJud = open(EXEC_JUD_PIPE, O_WRONLY); 
-			write(fdToJud, ans, 1);
+			write(fdToJud, ans, 2);
 			close(fdToJud);
 		}
 	}
@@ -84,8 +85,9 @@ int main(int argc, char **argv){
 	sigH->sa_flags = SA_SIGINFO;
 	sigaction(SIGUSR1, sigH, NULL);
 	sigaction(SIGUSR2, sigH, NULL);
-	sem_post(syncSem);
 	free(sigH);
+
+	sem_post(syncSem);
 	sem_close(syncSem);
 
 	// Pipe to comunicate with press
@@ -96,7 +98,7 @@ int main(int argc, char **argv){
 	srandom(time(NULL));
 
 	while(1){
-		int nLines = readAction(planPath, action);
+		int nLines = 0; //readAction(planPath, action);
 		if(nLines == 0){
 			// Ninguna accion fue escogida
 			char msg[150];
@@ -108,7 +110,7 @@ int main(int argc, char **argv){
 			sem_wait(syncSem2);
 			flock(pfd, LOCK_UN);
 		}
-		else{
+		/*else{
 			int success = execAction(nLines, action, dir, idExec, idLeg, idJud);
 			char msg[MAX_ACT_LINE];
 			if(random() % 100 >= 66) success = 0;
@@ -122,7 +124,7 @@ int main(int argc, char **argv){
 				int sz = strlen(msg);
 				writeToPress(pfd, msg, sz, syncSem2);
 			}
-		}
+		}*/
 	}
 
 	// Close pipe and semaphore
