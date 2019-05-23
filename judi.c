@@ -101,14 +101,9 @@ int main(int argc, char **argv){
 		int nLines = 0; //readAction(planPath, action);
 		if(nLines == 0){
 			// Ninguna accion fue escogida
-			char msg[100];
-			//strcpy(msg, JUD_IDDLE_MSG);
-			sprintf(msg,"Hola del Tribunal, proceso %d\n", idJud);
-			//writeToPress(pfd, msg, strlen(msg), syncSem);
-			flock(pfd, LOCK_EX);
-			write(pfd, msg, strlen(msg) + 1);
-			sem_wait(syncSem2);
-			flock(pfd, LOCK_UN);
+			char msg[150];
+			sprintf(msg, JUD_IDDLE_MSG);
+			writeToPress(pfd, msg, strlen(msg) + 1, syncSem);
 		}
 		/*else{
 			int success = execAction(nLines, action, dir, idExec, idLeg, idJud);

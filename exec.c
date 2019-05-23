@@ -98,17 +98,12 @@ int main(int argc, char **argv){
 	srandom(time(NULL));
 
 	while(1){
-		int nLines = 0; //readAction(planPath, action);
+		int nLines = readAction(planPath, action);
 		if(nLines == 0){
 			// Ninguna accion fue escogida
 			char msg[150];
-			//strcpy(msg, EXEC_IDDLE_MSG);
-			sprintf(msg,"Hola del Presidente, proceso %d\n", idExec);
-			//writeToPress(pfd, msg, strlen(msg), syncSem);
-			flock(pfd, LOCK_EX);
-			write(pfd, msg, strlen(msg) + 1);
-			sem_wait(syncSem2);
-			flock(pfd, LOCK_UN);
+			sprintf(msg, EXEC_IDDLE_MSG);
+			writeToPress(pfd, msg, strlen(msg) + 1, syncSem);
 		}
 		/*else{
 			int success = execAction(nLines, action, dir, idExec, idLeg, idJud);
