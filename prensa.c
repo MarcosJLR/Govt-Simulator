@@ -52,9 +52,15 @@ int main(int argc, char **argv){
 
 	// Syncronization semaphore
 	sem_unlink(PRESS_SYNC_SEM);
-	sem_unlink(PRESS_SYNC_SEM2);
 	sem_t *syncSem = sem_open(PRESS_SYNC_SEM, O_CREAT, 0666, 0);
 	if(syncSem == NULL){
+		fprintf(stderr, "Failed to open Semaphore\n");
+		return 0;
+	}
+
+	sem_unlink(PRESS_SYNC_SEM2);
+	sem_t *syncSem2 = sem_open(PRESS_SYNC_SEM2, O_CREAT, 0666, 0);
+	if(syncSem2 == NULL){
 		fprintf(stderr, "Failed to open Semaphore\n");
 		return 0;
 	}
@@ -117,7 +123,7 @@ int main(int argc, char **argv){
 
 	// Pipe file descriptor
 	pfd = open(PRESS_NAME, O_RDONLY);
-	sem_t *syncSem2 = sem_open(PRESS_SYNC_SEM2, O_CREAT, 0666, 0);
+	
 
 	while(day < daysLen){
 		day++;
@@ -150,35 +156,23 @@ int main(int argc, char **argv){
 	waitpid(idLeg, &status, 0);
 	waitpid(idJud, &status, 0);
 
-	// Unlink semaphore and delete pipes
+	// Unlink semaphores and delete pipes
+	sem_unlink(PRESS_SYNC_SEM);
 	sem_unlink(PRESS_SYNC_SEM2);
-	char rmCom[100];
-	strcpy(rmCom, "rm ");
 
-	strcpy(rmCom + 3, PRESS_NAME);
-	system(rmCom);	
-	strcpy(rmCom + 3, EXEC_PIPE_NAME);
-	system(rmCom);
-	strcpy(rmCom + 3, LEGIS_PIPE_NAME);
-	system(rmCom);
-	strcpy(rmCom + 3, JUD_PIPE_NAME);
-	system(rmCom);
+	remove(PRESS_NAME);	
+	remove(EXEC_PIPE_NAME);
+	remove(LEGIS_PIPE_NAME);
+	remove(JUD_PIPE_NAME);
 
-	strcpy(rmCom + 3, EXEC_LEG_PIPE);
-	system(rmCom);	
-	strcpy(rmCom + 3, EXEC_JUD_PIPE);
-	system(rmCom);
+	remove(EXEC_LEG_PIPE);	
+	remove(EXEC_JUD_PIPE);
 	
-	strcpy(rmCom + 3, LEG_EXEC_PIPE);
-	system(rmCom);
-	strcpy(rmCom + 3, LEG_JUD_PIPE);
-	system(rmCom);
+	remove(LEG_EXEC_PIPE);
+	remove(LEG_JUD_PIPE);
 	
-	strcpy(rmCom + 3, JUD_EXEC_PIPE);
-	system(rmCom);	
-	strcpy(rmCom + 3, JUD_LEG_PIPE);
-	system(rmCom);
-
+	remove(JUD_EXEC_PIPE);
+	remove(JUD_LEG_PIPE);
 
 	return 0;
 }

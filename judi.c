@@ -82,7 +82,7 @@ int main(int argc, char **argv){
 	// Set signal handler for passing of days and inform press
 	struct sigaction *sigH = malloc(sizeof(struct sigaction));
 	sigH->sa_sigaction = &signalHandler;
-	sigH->sa_flags = SA_SIGINFO;
+	sigH->sa_flags = SA_SIGINFO | SA_RESTART;
 	sigaction(SIGUSR1, sigH, NULL);
 	sigaction(SIGUSR2, sigH, NULL);
 	free(sigH);
@@ -106,7 +106,7 @@ int main(int argc, char **argv){
 			sprintf(msg,"Hola del Tribunal, proceso %d\n", idJud);
 			//writeToPress(pfd, msg, strlen(msg), syncSem);
 			flock(pfd, LOCK_EX);
-			write(pfd, msg, strlen(msg));
+			write(pfd, msg, strlen(msg) + 1);
 			sem_wait(syncSem2);
 			flock(pfd, LOCK_UN);
 		}
