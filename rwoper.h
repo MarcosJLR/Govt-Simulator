@@ -16,7 +16,7 @@ int writeToPress(int fd, char *msg, int nBytes, sem_t *syncSem);
 
 // Extracts an action from the govt plan and saves it in act
 // (at most x lines)
-int readAction(const char *filePath, char **action);
+int readAction(const char *filePath, char action[MAX_ACTION][MAX_ACT_LINE]);
 
 // Carries out the action in action with nLines lines
 // Returns 1 if the action was succesful and 0 if not

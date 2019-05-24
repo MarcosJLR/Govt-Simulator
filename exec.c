@@ -55,7 +55,7 @@ int main(int argc, char **argv){
 	
 	// Path of directory where Govt. files exist
 	if(argc > 2)
-		strcpy(dir, argv[2]);
+		strncpy(dir, argv[2], sizeof(dir));
 	else
 		dir[0] = '\0';
 
@@ -88,12 +88,12 @@ int main(int argc, char **argv){
 	srandom(time(NULL));
 
 	while(1){
-		int nLines = 0;// readAction(planPath, action);
+		int nLines = readAction(planPath, action);
 		if(nLines == 0){
 			// Ninguna accion fue escogida
 			char msg[150];
 			sprintf(msg, EXEC_IDDLE_MSG);
-			writeToPress(pfd, msg, strlen(msg) + 1, syncSem);
+			writeToPress(pfd, msg, strlen(msg) + 1, syncSem2);
 		}
 		/*else{
 			int success = execAction(nLines, action, dir, idExec, idLeg, idJud);
@@ -110,6 +110,9 @@ int main(int argc, char **argv){
 				writeToPress(pfd, msg, sz, syncSem2);
 			}
 		}*/
+		else{
+			writeToPress(pfd, action[0], strlen(action[0]) + 1, syncSem2);
+		}
 	}
 
 	// Close pipe and semaphore

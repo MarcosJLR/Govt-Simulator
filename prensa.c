@@ -32,7 +32,7 @@ int main(int argc, char **argv){
 
 	// Path of directory where Govt. files exist
 	if(argc > 2)
-		strcpy(dir, argv[2]);
+		strncpy(dir, argv[2], sizeof(dir));
 
 	// Named Pipe to retrieve headlines
 	mkfifo(PRESS_NAME, 0666);

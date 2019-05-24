@@ -28,29 +28,28 @@ int writeToPress(int fd, char *msg, int nBytes, sem_t *syncSem){
 	return wBytes;
 }
 
-int readAction(const char *filePath, char **action){
+int readAction(const char *filePath, char action[MAX_ACTION][MAX_ACT_LINE]){
 	FILE *file = fopen(filePath, "r");
 
 	if(file == NULL){
-
 		fprintf(stderr, "Couldn't open file: %s\n", filePath);
 		return 0;
 	}
 
 	int n = 0;
 	int fd = fileno(file);
-	char *line = NULL;
-	size_t len = 0;
-	srandom(time(NULL));
+	char *line = malloc(MAX_ACT_LINE*sizeof(char));
+	size_t len = MAX_ACT_LINE;
+	//srandom(time(NULL));
 
 	flock(fd, LOCK_SH);
 	while(getline(&line, &len, file) != -1){
 		int r = random() % 100;
-		if(r < 20){
-			strcpy(action[n++], line);
+		if(r < 10){
+			strncpy(action[n++], line, sizeof(action[0]) - 1);
 			while(getline(&line, &len, file) != -1){
 				if(strcmp(line, "\n") == 0) break;
-				strcpy(action[n++], line);
+				strncpy(action[n++], line, sizeof(action[0]) - 1);
 			}
 		}
 		else{
