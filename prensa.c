@@ -13,9 +13,9 @@
 
 #include "prensa.h"
 
-pid_t idExec, idLeg, idJud;
+
 int daysLen, day = 0;
-char dir[PATH_MAX];
+
 
 int main(int argc, char **argv){
 	// Needs to have at least the duration of the simulation
@@ -24,9 +24,12 @@ int main(int argc, char **argv){
 		return 0;
 	}
 	
+	pid_t idExec, idLeg, idJud;
+	char dir[PATH_MAX];
+
 	// Number of days the simulation will run
 	sscanf(argv[1], "%d", &daysLen);
-	
+
 	// Path of directory where Govt. files exist
 	if(argc > 2)
 		strcpy(dir, argv[2]);
@@ -48,7 +51,6 @@ int main(int argc, char **argv){
 
 	mkfifo(JUD_EXEC_PIPE, 0666);
 	mkfifo(JUD_LEG_PIPE, 0666);
-
 
 	// Syncronization semaphore
 	sem_unlink(PRESS_SYNC_SEM);
@@ -139,16 +141,21 @@ int main(int argc, char **argv){
 
 		// Publish headline
 		printf("Dia %d: %s\n", day, buf);
+		fflush(stdout);
 
 		// Send signal to processes informing a day has passed
-		kill(idExec, SIGUSR1);
+		/*kill(idExec, SIGUSR1);
 		kill(idLeg, SIGUSR1);
-		kill(idJud, SIGUSR1);
+		kill(idJud, SIGUSR1);*/
 	}
 	
 	// Close pipe and semaphore
 	close(pfd);
 	sem_close(syncSem2);
+
+	kill(idExec, SIGKILL);
+	kill(idLeg, SIGKILL);
+	kill(idJud, SIGKILL);
 
 	// Wait for the other processes to terminate
 	int status;

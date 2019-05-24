@@ -14,36 +14,29 @@
 #include "prensa.h"
 #include "rwoper.h"
 
-char action[MAX_ACTION][MAX_ACT_LINE];
 pid_t idExec, idLeg, idJud;
 int daysLen, day = 0;
-char dir[PATH_MAX];
-char planPath[PATH_MAX];
 
-void signalHandler(int sig, siginfo_t *info, void *ucontext){
+void signalHandler(int sig){
 	if(sig == SIGUSR1){
-		day++;
-		if(day >= daysLen){
-			exit(sig);
-		}
+		int ac = (random() % 100 < 50);
+		char ans[2];
+		if(ac) strcpy(ans, "Y");
+		else strcpy(ans, "N");
+
+		int fdToLeg = open(EXEC_LEG_PIPE, O_WRONLY); 
+		write(fdToLeg, ans, 2);
+		close(fdToLeg);
 	}
 	if(sig == SIGUSR2){
 		int ac = (random() % 100 < 50);
 		char ans[2];
-		if(ac)
-			sprintf(ans, "Y");
-		else
-			sprintf(ans, "N");
-		if(info->si_pid == idLeg){
-			int fdToLeg = open(EXEC_LEG_PIPE, O_WRONLY); 
-			write(fdToLeg, ans, 2);
-			close(fdToLeg);
-		}
-		if(info->si_pid == idJud){
-			int fdToJud = open(EXEC_JUD_PIPE, O_WRONLY); 
-			write(fdToJud, ans, 2);
-			close(fdToJud);
-		}
+		if(ac) strcpy(ans, "Y");
+		else strcpy(ans, "N");
+
+		int fdToJud = open(EXEC_JUD_PIPE, O_WRONLY); 
+		write(fdToJud, ans, 2);
+		close(fdToJud);
 	}
 }
 
@@ -53,21 +46,22 @@ int main(int argc, char **argv){
 		return 0;
 	}
 	
+	char action[MAX_ACTION][MAX_ACT_LINE];
+	char planPath[PATH_MAX];
+	char dir[PATH_MAX];
+
 	// Number of days the simulation will run
 	sscanf(argv[1], "%d", &daysLen);
 	
 	// Path of directory where Govt. files exist
 	if(argc > 2)
 		strcpy(dir, argv[2]);
+	else
+		dir[0] = '\0';
 
 	// Path of Executive govt plan
-	if(strcmp(dir, "\0")==0){
-		strcpy(planPath, "Ejecutivo.acc");
-	}
-	else{
-		strcpy(planPath, dir);
-		strcat(planPath, "/Ejecutivo.acc");
-	}
+	strcpy(planPath, dir);
+	strcat(planPath, "Ejecutivo.acc");
 
 	// Pipe to read the other processes ID's
 	int pfd = open(EXEC_PIPE_NAME, O_RDONLY);
@@ -79,13 +73,9 @@ int main(int argc, char **argv){
 	// Semaphore to sync in with press
 	sem_t *syncSem = sem_open(PRESS_SYNC_SEM, O_CREAT, 0666, 0);
 
-	// Set signal handler for passing of days and inform press
-	struct sigaction *sigH = malloc(sizeof(struct sigaction));
-	sigH->sa_sigaction = &signalHandler;
-	sigH->sa_flags = SA_SIGINFO | SA_RESTART;
-	sigaction(SIGUSR1, sigH, NULL);
-	sigaction(SIGUSR2, sigH, NULL);
-	free(sigH);
+	// Set signal handler for aprovals and inform press
+	signal(SIGUSR1, signalHandler);
+	signal(SIGUSR2, signalHandler);
 
 	sem_post(syncSem);
 	sem_close(syncSem);
@@ -98,7 +88,7 @@ int main(int argc, char **argv){
 	srandom(time(NULL));
 
 	while(1){
-		int nLines = readAction(planPath, action);
+		int nLines = 0;// readAction(planPath, action);
 		if(nLines == 0){
 			// Ninguna accion fue escogida
 			char msg[150];
