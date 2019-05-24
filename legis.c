@@ -153,6 +153,10 @@ int main(int argc, char **argv){
 			sprintf(msg, EXEC_IDDLE_MSG);
 			writeToPress(pfd, msg, strlen(msg) + 1, syncSem2);
 		}
+		else if(nLines < 3){
+			fprintf(stderr, "The Legislative Govt Plan has been corrupted\n");
+			break;
+		}
 		else{
 			int success = execAction(nLines, action, dir, idExec, idLeg, idJud);
 			
