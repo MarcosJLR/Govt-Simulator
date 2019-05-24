@@ -14,10 +14,6 @@
 #include "prensa.h"
 #include "rwoper.h"
 
-
-pid_t idExec, idLeg, idJud;
-int daysLen, day = 0;
-
 void signalHandler(int sig){
 	if(sig == SIGUSR1){
 		int ac = (random() % 100 < 50);
@@ -41,27 +37,88 @@ void signalHandler(int sig){
 	}
 }
 
-int main(int argc, char **argv){
-	if(argc < 2){
-		fprintf(stderr, "Too few arguments\n");
-		return 0;
+int execAction(int nLines, char action[MAX_ACTION][MAX_ACT_LINE], char *dir, pid_t idExec, pid_t idLeg, pid_t idJud){
+	FILE *fp = NULL;
+	int success = 1;
+	char com[20], inst[MAX_ACT_LINE], fileName[PATH_MAX];
+
+	for(int i = 1; i < nLines-2; i++){
+		cutString(action[i],com,inst);
+		if(strcmp(com, "exclusivo:") == 0){
+			strncpy(fileName, dir, sizeof(fileName));
+			strncat(fileName, inst, strlen(inst) - 1);
+			openGovtFile(&fp, fileName, 1, 0);
+		}
+		else if(strcmp(com, "inclusivo:") == 0){
+			strncpy(fileName, dir, sizeof(fileName));
+			strncat(fileName, inst, strlen(inst) - 1);
+			openGovtFile(&fp, fileName, 0, 0);
+		}
+		else if(strcmp(com, "leer:") == 0){
+			if(!readFromFile(fp, inst)){
+				success = 0;
+				break;
+			}
+		}
+		else if(strcmp(com, "anular:") == 0){
+			if(readFromFile(fp, inst)){
+				success = 0;
+				break;
+			}
+		}
+		else if(strcmp(com, "escribir:") == 0){
+			if(writeToFile(fp, inst) < 0){
+				success = 0;
+				break;
+			}
+		}
+		else if(strcmp(com, "aprobacion:") == 0){
+			int p = 1;
+			
+			if(strcmp(inst, "Tribunal Supremo\n") == 0)
+				p = aprovalFrom(JUD_LEG_PIPE, idJud, SIGUSR2);
+			else if(strcmp(inst, "Congreso\n") != 0)
+				p = aprovalFrom(EXEC_LEG_PIPE, idExec, SIGUSR1);
+			
+			if(!p){
+				success = 0;
+				break;
+			}
+		}
+		else if(strcmp(com, "reprobación:") == 0){
+			int p = 0;
+			
+			if(strcmp(inst, "Tribunal Supremo\n") == 0)
+				p = aprovalFrom(JUD_LEG_PIPE, idJud, SIGUSR2);
+			else if(strcmp(inst, "Congreso\n") != 0)
+				p = aprovalFrom(EXEC_LEG_PIPE, idLeg, SIGUSR1);
+			
+			if(p){
+				success = 0;
+				break;
+			}
+		}
 	}
-	
+
+	openGovtFile(&fp, NULL, 0, 1);
+
+	return success;
+}
+
+int main(int argc, char **argv){
+	pid_t idExec, idLeg, idJud;
 	char action[MAX_ACTION][MAX_ACT_LINE];
 	char planPath[PATH_MAX];
 	char dir[PATH_MAX];
-
-	// Number of days the simulation will run
-	sscanf(argv[1], "%d", &daysLen);
 	
 	// Path of directory where Govt. files exist
-	if(argc > 2)
-		strncpy(dir, argv[2], sizeof(dir));
+	if(argc > 1)
+		strncpy(dir, argv[1], sizeof(dir));
 	else
 		dir[0] = '\0';
 
 	// Path of Executive govt plan
-	strcpy(planPath, dir);
+	strncpy(planPath, dir, sizeof(planPath));
 	strcat(planPath, "Legislativo.acc");
 
 	// Pipe to read the other processes ID's
@@ -90,29 +147,26 @@ int main(int argc, char **argv){
 
 	while(1){
 		int nLines = readAction(planPath, action);
+		char msg[MAX_ACT_LINE];
 		if(nLines == 0){
 			// Ninguna accion fue escogida
-			char msg[150];
-			sprintf(msg, LEG_IDDLE_MSG);
+			sprintf(msg, EXEC_IDDLE_MSG);
 			writeToPress(pfd, msg, strlen(msg) + 1, syncSem2);
 		}
-		/*else{
+		else{
 			int success = execAction(nLines, action, dir, idExec, idLeg, idJud);
-			char msg[MAX_ACT_LINE];
-			if(random() % 100 >= 66) success = 0;
+			
+			if(random() % 100 >= 66) 
+				success = 0;
+			
 			if(success){
-				strcpy(msg, action[nLines-2] + 7);
-				int sz = strlen(msg);
-				writeToPress(pfd, msg, sz, syncSem2);		
+				strncpy(msg, action[nLines-2] + 7, sizeof(msg));
+				writeToPress(pfd, msg, strlen(msg) + 1, syncSem2);		
 			}
 			else{
-				strcpy(msg, action[nLines-1] + 9);
-				int sz = strlen(msg);
-				writeToPress(pfd, msg, sz, syncSem2);
+				strncpy(msg, action[nLines-1] + 9, sizeof(msg));
+				writeToPress(pfd, msg, strlen(msg) + 1, syncSem2);
 			}
-		}*/
-		else{
-			writeToPress(pfd, action[0], strlen(action[0]) + 1, syncSem2);
 		}
 	}
 

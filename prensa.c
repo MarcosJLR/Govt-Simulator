@@ -13,10 +13,6 @@
 
 #include "prensa.h"
 
-
-int daysLen, day = 0;
-
-
 int main(int argc, char **argv){
 	// Needs to have at least the duration of the simulation
 	if(argc < 2){
@@ -25,6 +21,7 @@ int main(int argc, char **argv){
 	}
 	
 	pid_t idExec, idLeg, idJud;
+	int daysLen, day = 0;
 	char dir[PATH_MAX];
 
 	// Number of days the simulation will run
@@ -52,7 +49,7 @@ int main(int argc, char **argv){
 	mkfifo(JUD_EXEC_PIPE, 0666);
 	mkfifo(JUD_LEG_PIPE, 0666);
 
-	// Syncronization semaphore
+	// Syncronization semaphores
 	sem_unlink(PRESS_SYNC_SEM);
 	sem_t *syncSem = sem_open(PRESS_SYNC_SEM, O_CREAT, 0666, 0);
 	if(syncSem == NULL){
@@ -69,7 +66,7 @@ int main(int argc, char **argv){
 
 	// Init Executive
 	if((idExec = fork()) == 0){
-		char *nargv[] = { "./exec.o", argv[1], dir , NULL };
+		char *nargv[] = { "./exec.o", dir , NULL };
 		if(execvp(nargv[0], nargv) == -1){
 			fprintf(stderr, "Failed to execute %s because %s\n", nargv[0], strerror(errno));
 			exit(0);
@@ -78,7 +75,7 @@ int main(int argc, char **argv){
 
 	// Init Legislative
 	if((idLeg = fork()) == 0){
-		char *nargv[] = { "./legis.o", argv[1], dir , NULL };
+		char *nargv[] = { "./legis.o", dir , NULL };
 		if(execvp(nargv[0], nargv) == -1){
 			fprintf(stderr, "Failed to execute %s because %s\n", nargv[0], strerror(errno));
 			exit(0);
@@ -87,7 +84,7 @@ int main(int argc, char **argv){
 
 	// Init Judicial
 	if((idJud = fork()) == 0){
-		char *nargv[] = { "./judi.o", argv[1], dir , NULL };
+		char *nargv[] = { "./judi.o", dir , NULL };
 		if(execvp(nargv[0], nargv) == -1){
 			fprintf(stderr, "Failed to execute %s because %s\n", nargv[0], strerror(errno));
 			exit(0);
