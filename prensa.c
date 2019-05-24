@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/file.h>
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
@@ -12,10 +13,6 @@
 
 #include "prensa.h"
 
-pid_t idExec, idLeg, idJud;
-int daysLen, day = 0;
-char dir[PATH_MAX];
-
 int main(int argc, char **argv){
 	// Needs to have at least the duration of the simulation
 	if(argc < 2){
@@ -23,12 +20,16 @@ int main(int argc, char **argv){
 		return 0;
 	}
 	
+	pid_t idExec, idLeg, idJud;
+	int daysLen, day = 0;
+	char dir[PATH_MAX];
+
 	// Number of days the simulation will run
 	sscanf(argv[1], "%d", &daysLen);
-	
+
 	// Path of directory where Govt. files exist
 	if(argc > 2)
-		strcpy(dir, argv[2]);
+		strncpy(dir, argv[2], sizeof(dir));
 
 	// Named Pipe to retrieve headlines
 	mkfifo(PRESS_NAME, 0666);
@@ -48,19 +49,24 @@ int main(int argc, char **argv){
 	mkfifo(JUD_EXEC_PIPE, 0666);
 	mkfifo(JUD_LEG_PIPE, 0666);
 
-
-	// Syncronization semaphore
+	// Syncronization semaphores
 	sem_unlink(PRESS_SYNC_SEM);
-	sem_unlink(PRESS_SYNC_SEM2);
 	sem_t *syncSem = sem_open(PRESS_SYNC_SEM, O_CREAT, 0666, 0);
 	if(syncSem == NULL){
 		fprintf(stderr, "Failed to open Semaphore\n");
 		return 0;
 	}
 
+	sem_unlink(PRESS_SYNC_SEM2);
+	sem_t *syncSem2 = sem_open(PRESS_SYNC_SEM2, O_CREAT, 0666, 0);
+	if(syncSem2 == NULL){
+		fprintf(stderr, "Failed to open Semaphore\n");
+		return 0;
+	}
+
 	// Init Executive
 	if((idExec = fork()) == 0){
-		char *nargv[] = { "./exec.o", argv[1], dir , NULL };
+		char *nargv[] = { "./exec.o", dir , NULL };
 		if(execvp(nargv[0], nargv) == -1){
 			fprintf(stderr, "Failed to execute %s because %s\n", nargv[0], strerror(errno));
 			exit(0);
@@ -69,7 +75,7 @@ int main(int argc, char **argv){
 
 	// Init Legislative
 	if((idLeg = fork()) == 0){
-		char *nargv[] = { "./legis.o", argv[1], dir , NULL };
+		char *nargv[] = { "./legis.o", dir , NULL };
 		if(execvp(nargv[0], nargv) == -1){
 			fprintf(stderr, "Failed to execute %s because %s\n", nargv[0], strerror(errno));
 			exit(0);
@@ -78,7 +84,7 @@ int main(int argc, char **argv){
 
 	// Init Judicial
 	if((idJud = fork()) == 0){
-		char *nargv[] = { "./judi.o", argv[1], dir , NULL };
+		char *nargv[] = { "./judi.o", dir , NULL };
 		if(execvp(nargv[0], nargv) == -1){
 			fprintf(stderr, "Failed to execute %s because %s\n", nargv[0], strerror(errno));
 			exit(0);
@@ -116,7 +122,7 @@ int main(int argc, char **argv){
 
 	// Pipe file descriptor
 	pfd = open(PRESS_NAME, O_RDONLY);
-	sem_t *syncSem2 = sem_open(PRESS_SYNC_SEM2, O_CREAT, 0666, 0);
+	
 
 	while(day < daysLen){
 		day++;
@@ -132,16 +138,21 @@ int main(int argc, char **argv){
 
 		// Publish headline
 		printf("Dia %d: %s\n", day, buf);
+		fflush(stdout);
 
 		// Send signal to processes informing a day has passed
-		kill(idExec, SIGUSR1);
+		/*kill(idExec, SIGUSR1);
 		kill(idLeg, SIGUSR1);
-		kill(idJud, SIGUSR1);
+		kill(idJud, SIGUSR1);*/
 	}
 	
 	// Close pipe and semaphore
 	close(pfd);
 	sem_close(syncSem2);
+
+	kill(idExec, SIGKILL);
+	kill(idLeg, SIGKILL);
+	kill(idJud, SIGKILL);
 
 	// Wait for the other processes to terminate
 	int status;
@@ -149,35 +160,23 @@ int main(int argc, char **argv){
 	waitpid(idLeg, &status, 0);
 	waitpid(idJud, &status, 0);
 
-	// Unlink semaphore and delete pipes
+	// Unlink semaphores and delete pipes
+	sem_unlink(PRESS_SYNC_SEM);
 	sem_unlink(PRESS_SYNC_SEM2);
-	char rmCom[100];
-	strcpy(rmCom, "rm ");
 
-	strcpy(rmCom + 3, PRESS_NAME);
-	system(rmCom);	
-	strcpy(rmCom + 3, EXEC_PIPE_NAME);
-	system(rmCom);
-	strcpy(rmCom + 3, LEGIS_PIPE_NAME);
-	system(rmCom);
-	strcpy(rmCom + 3, JUD_PIPE_NAME);
-	system(rmCom);
+	remove(PRESS_NAME);	
+	remove(EXEC_PIPE_NAME);
+	remove(LEGIS_PIPE_NAME);
+	remove(JUD_PIPE_NAME);
 
-	strcpy(rmCom + 3, EXEC_LEG_PIPE);
-	system(rmCom);	
-	strcpy(rmCom + 3, EXEC_JUD_PIPE);
-	system(rmCom);
+	remove(EXEC_LEG_PIPE);	
+	remove(EXEC_JUD_PIPE);
 	
-	strcpy(rmCom + 3, LEG_EXEC_PIPE);
-	system(rmCom);
-	strcpy(rmCom + 3, LEG_JUD_PIPE);
-	system(rmCom);
+	remove(LEG_EXEC_PIPE);
+	remove(LEG_JUD_PIPE);
 	
-	strcpy(rmCom + 3, JUD_EXEC_PIPE);
-	system(rmCom);	
-	strcpy(rmCom + 3, JUD_LEG_PIPE);
-	system(rmCom);
-
+	remove(JUD_EXEC_PIPE);
+	remove(JUD_LEG_PIPE);
 
 	return 0;
 }

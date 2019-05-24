@@ -16,11 +16,11 @@ int writeToPress(int fd, char *msg, int nBytes, sem_t *syncSem);
 
 // Extracts an action from the govt plan and saves it in act
 // (at most x lines)
-int readAction(const char *filePath, char **action);
+int readAction(const char *filePath, char action[MAX_ACTION][MAX_ACT_LINE]);
 
 // Carries out the action in action with nLines lines
 // Returns 1 if the action was succesful and 0 if not
-int execAction(int nLines, char **action, char *dir, pid_t idExec, pid_t idLeg, pid_t idJud);
+//int execAction(int nLines, char **action, char *dir, pid_t idExec, pid_t idLeg, pid_t idJud);
 
 // Stores the first word of s on head and the rest on tail
 void cutString(const char *s, char *head, char *tail);
@@ -35,5 +35,8 @@ int writeToFile(FILE *f, char *s);
 // with name path with locks on mode (0 inclusive)
 // If closeOnly is set, it won't open a new file
 void openGovtFile(FILE **file, const char *path, int mode, int closeOnly);
+
+// Requests aproval from proces with PID = aproverID and returns the answer
+int aprovalFrom(const char *pipeName, pid_t aproverID, int sig);
 
 #endif
