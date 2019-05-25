@@ -23,6 +23,7 @@ int writeToPress(void *arg, char *msg, int nBytes){
 	}
 
 	sem_wait(&ta->write);
+	while(arg->headline[arg->end][0]!='\0');
 	strcpy(ta->headline[ta->head], msg);
 	ta->head=(ta->head+1)%10;
 	sem_post(&ta->press);
