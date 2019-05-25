@@ -122,3 +122,47 @@ int aprovalFrom(const char *pipeName, pid_t aproverID, int sig){
 	
 	return (ans[0] == 'Y');
 }
+
+void eraseAction(const char *filePath, char *replicaName, char *actionName){
+	FILE *file = fopen(filePath, "r");
+	FILE *replica = fopen(replicaName, "w+");
+
+	if(file == NULL){
+		fprintf(stderr, "Couldn't open file: %s\n", filePath);
+		return;
+	}
+
+	int fd = fileno(file);
+	char *line = malloc(MAX_ACT_LINE*sizeof(char));
+	size_t len = MAX_ACT_LINE;
+
+	flock(fd, LOCK_SH);
+	while(getline(&line, &len, file) != -1){
+		if(strcmp(actionName, line) != 0){
+			fprintf(replica, "%s", line);
+			while(getline(&line, &len, file) != -1){
+				fprintf(replica, "%s", line);
+				if(strcmp(line, "\n") == 0) break;
+			}
+		}
+		else{
+			while(getline(&line, &len, file) != -1)
+				if(strcmp(line, "\n") == 0) break;
+		}
+	}
+	flock(fd, LOCK_UN);
+	fclose(file);
+
+	rewind(replica);
+
+	file = fopen(filePath, "w");
+	fd = fileno(file);
+
+	flock(fd, LOCK_EX);
+	while(getline(&line, &len, replica) != -1)
+		fprintf(file, "%s", line);
+	flock(fd, LOCK_UN);
+
+	fclose(file);
+	fclose(replica);
+}

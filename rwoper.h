@@ -39,4 +39,7 @@ void openGovtFile(FILE **file, const char *path, int mode, int closeOnly);
 // Requests aproval from proces with PID = aproverID and returns the answer
 int aprovalFrom(const char *pipeName, pid_t aproverID, int sig);
 
+// Erase the action with name actionName on the govt plan (fileName)
+void eraseAction(const char *filePath, char *replicaName, char *actionName);
+
 #endif

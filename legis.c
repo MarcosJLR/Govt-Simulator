@@ -150,8 +150,7 @@ int main(int argc, char **argv){
 		char msg[MAX_ACT_LINE];
 		if(nLines == 0){
 			// Ninguna accion fue escogida
-			sprintf(msg, EXEC_IDDLE_MSG);
-			writeToPress(pfd, msg, strlen(msg) + 1, syncSem2);
+			sprintf(msg, LEG_IDDLE_MSG);
 		}
 		else if(nLines < 3){
 			fprintf(stderr, "The Legislative Govt Plan has been corrupted\n");
@@ -163,15 +162,12 @@ int main(int argc, char **argv){
 			if(random() % 100 >= 66) 
 				success = 0;
 			
-			if(success){
+			if(success)
 				strncpy(msg, action[nLines-2] + 7, sizeof(msg));
-				writeToPress(pfd, msg, strlen(msg) + 1, syncSem2);		
-			}
-			else{
+			else
 				strncpy(msg, action[nLines-1] + 9, sizeof(msg));
-				writeToPress(pfd, msg, strlen(msg) + 1, syncSem2);
-			}
 		}
+		writeToPress(pfd, msg, strlen(msg) + 1, syncSem2);
 	}
 
 	// Close pipe and semaphore
