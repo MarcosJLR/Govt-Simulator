@@ -12,49 +12,43 @@
 #include <time.h>
 #include <pthread.h> 
 
-#include "prensa.h"
-#include "rwoper.h"
+#include "rwoperThread.h"
+#include "prensaThread.h"
 
-int writeToPress(void *arg, char *msg, int nBytes){
-	struct ThreadArguments *ta = arg;
-	if(nBytes >= 500){
-		fprintf(stderr, "Headline is too long!\n");
-		return 0;
-	}
+void writeToPress(void *arg, char *msg){
+	ThreadArguments *ta = arg;
 
 	sem_wait(&ta->write);
 	sem_wait(&ta->full);
+	
 	strcpy(ta->headline[ta->head], msg);
-	ta->head=(ta->head+1)%10;
+	ta->head = (ta->head + 1) % 10;
+
 	sem_post(&ta->press);
 	sem_post(&ta->write);
-
-	return wBytes;
 }
 
-int readAction(const char *filePath, char **action){
+int readAction(const char *filePath, char action[MAX_ACTION][MAX_ACT_LINE]){
 	FILE *file = fopen(filePath, "r");
 
 	if(file == NULL){
-
 		fprintf(stderr, "Couldn't open file: %s\n", filePath);
 		return 0;
 	}
 
 	int n = 0;
 	int fd = fileno(file);
-	char *line = NULL;
-	size_t len = 0;
-	srandom(time(NULL));
+	char *line = malloc(MAX_ACT_LINE*sizeof(char));
+	size_t len = MAX_ACT_LINE;
 
 	flock(fd, LOCK_SH);
 	while(getline(&line, &len, file) != -1){
 		int r = random() % 100;
-		if(r < 20){
-			strcpy(action[n++], line);
+		if(r < 10){
+			strncpy(action[n++], line, sizeof(action[0]) - 1);
 			while(getline(&line, &len, file) != -1){
 				if(strcmp(line, "\n") == 0) break;
-				strcpy(action[n++], line);
+				strncpy(action[n++], line, sizeof(action[0]) - 1);
 			}
 		}
 		else{
@@ -70,44 +64,8 @@ int readAction(const char *filePath, char **action){
 	return n;
 }
 
-/*const char * getAction(char *dir, int prob){
-	FILE *fp
-	fp= fopen(*dir, r);
-	char act[10000];
-	char ch, chp;
-	int accepted=0;
-	act[0]='\0'
-	int charnum=0;
-	if((rand()%100)<prob){
-		accepted=1;
-	}
-	chp='\0';
-	while((ch = fgetc(fp)) != EOF){
-		if(accepted){
-			if(ch=='\n' && chp=='\n'){
-				fclose(fp);
-				return act;
-			}
-			else{
-				act[charnum]=ch;
-				charnum++;
-			}
-		}
-		else{
-			if(ch=='\n' && chp=='\n'){
-				if((rand()%100)<prob){
-					accepted=1;
-				}
-			}
-		}
-		chp=ch;
-	}
-	fclose(fp);
-	return act;
-}*/
-
 int writeToFile(FILE *f, char *s){
-	int i= fprintf(f,s);
+	int i = fprintf(f,s);
 	return i;
 }
 
@@ -136,14 +94,14 @@ void cutString(const char *s, char *head, char *tail){
 }
 
 void openGovtFile(FILE **file, const char *path, int mode, int closeOnly){
-	if(*file){
+	if(*file != NULL){
 		int fd = fileno(*file);
 		flock(fd, LOCK_UN);
 		fclose(*file);
 		*file = NULL;
 	}
 	if(!closeOnly){
-		*file = fopen(path, "ra");
+		*file = fopen(path, "a+");
 		int fd = fileno(*file);
 		if(mode)
 			flock(fd, LOCK_EX);
@@ -152,125 +110,36 @@ void openGovtFile(FILE **file, const char *path, int mode, int closeOnly){
 	}
 }
 
-int aprovalFrom(const char *pipeName, pid_t apID){
-	char ans[2];
-	kill(apID, SIGUSR2);
-	int pfd = open(pipeName, O_RDONLY);
-	read(pfd, ans, 1);
-	close(pfd);
-	return (ans[0] == 'Y');
+void *secretary(void *args){
+	SecretaryArgs *realArgs = args;
+
+	while(1){
+		pthread_mutex_lock(realArgs->mt);
+		while(*(realArgs->req) == 0)
+			pthread_cond_wait(realArgs->reqCV, realArgs->mt);
+		(*realArgs->req)--;
+		(*realArgs->ans) = random() % 2;
+		pthread_cond_broadcast(realArgs->ansCV);
+		while(*(realArgs->ans) != -1)
+			pthread_cond_wait(realArgs->ansCV, realArgs->mt);
+		pthread_mutex_unlock(realArgs->mt);
+	}
+
+	free(args);
+
+	pthread_exit(0);
 }
 
-int execAction(int nLines, char **action, char *dir, pid_t idExec, pid_t idLeg, pid_t idJud){
-	FILE *fp;
-	char com[10], inst[MAX_ACT_LINE], direction[PATH_MAX];
-	for(int i = 1; i < nLines-2; i++){
-		cutString(action[i],com,inst);
-		if(strcmp(com, "exclusivo:") == 0){
-			if(strcmp(dir, "\0")==0){
-				strcat(direction, inst);
-			}
-			else{
-				strcpy(direction, dir);
-				strcat(direction, "/");
-				strcat(direction, inst);
-			}
-			openGovtFile(&fp, direction, 1, 0);
-		}
-		else if(strcmp(com, "inclusivo:") == 0){
-			if(strcmp(dir, "\0")==0){
-				strcat(direction, inst);
-			}
-			else{
-				strcpy(direction, dir);
-				strcat(direction, "/");
-				strcat(direction, inst);
-			}
-			openGovtFile(&fp, direction, 0, 0);
-		}
-		else if(strcmp(com, "leer:") == 0){
-			int p = readFromFile(fp, inst);
-			if(!p) return 0;
-		}
-		else if(strcmp(com, "anular:") == 0){
-			int p = readFromFile(fp, inst);
-			if(p) return 0;
-		}
-		else if(strcmp(com, "escribir:") == 0){
-			int p = writeToFile(fp, inst);
-		}
-		else if(strcmp(com, "aprobación:") == 0){
-			pid_t aproverID;
-
-			if(strcmp(inst, "Congreso\n") == 0)
-				aproverID = idLeg;
-			else if(strcmp(inst, "Tribunal Supremo\n") == 0)
-				aproverID = idJud;
-			else
-				aproverID = idExec;
-			
-			pid_t myPID = getpid();
-			if(aproverID != myPID){
-				char pipeName[PATH_MAX];
-				if(myPID == idExec){
-					if(aproverID == idLeg)
-						strcpy(pipeName, LEG_EXEC_PIPE);
-					else
-						strcpy(pipeName, JUD_EXEC_PIPE);
-				}
-				else if(myPID == idJud){
-					if(aproverID == idLeg)
-						strcpy(pipeName, LEG_JUD_PIPE);
-					else
-						strcpy(pipeName, EXEC_JUD_PIPE);
-				}
-				else if(myPID == idLeg){
-					if(aproverID == idJud)
-						strcpy(pipeName, JUD_LEG_PIPE);
-					else
-						strcpy(pipeName, EXEC_LEG_PIPE);
-				}
-
-				if(!aprovalFrom(pipeName, aproverID))
-					return 0;
-			}
-		}
-		else if(strcmp(com, "reprobación:") == 0){
-			pid_t aproverID;
-
-			if(strcmp(inst, "Congreso\n") == 0)
-				aproverID = idLeg;
-			else if(strcmp(inst, "Tribunal Supremo\n") == 0)
-				aproverID = idJud;
-			else
-				aproverID = idExec;
-			
-			pid_t myPID = getpid();
-			if(aproverID != myPID){
-				char pipeName[PATH_MAX];
-				if(myPID == idExec){
-					if(aproverID == idLeg)
-						strcpy(pipeName, LEG_EXEC_PIPE);
-					else
-						strcpy(pipeName, JUD_EXEC_PIPE);
-				}
-				else if(myPID == idJud){
-					if(aproverID == idLeg)
-						strcpy(pipeName, LEG_JUD_PIPE);
-					else
-						strcpy(pipeName, EXEC_JUD_PIPE);
-				}
-				else if(myPID == idLeg){
-					if(aproverID == idJud)
-						strcpy(pipeName, JUD_LEG_PIPE);
-					else
-						strcpy(pipeName, EXEC_LEG_PIPE);
-				}
-
-				if(aprovalFrom(pipeName, aproverID))
-					return 0;
-			}
-		}
-	}
-	return 1;
+int aprovalRequest(SecretaryArgs *s){
+	int ret = 0;
+	pthread_mutex_lock(s->mt);
+	(*s->req)++;
+	pthread_cond_broadcast(s->reqCV);
+	while(*s->ans == -1)
+		pthread_cond_wait(s->ansCV, s->mt);
+	ret = *s->ans;
+	*s->ans = -1;
+	pthread_cond_broadcast(s->ansCV);
+	pthread_mutex_unlock(s->mt);
+	return ret;
 }
