@@ -15,16 +15,18 @@
 #include "prensa.h"
 #include "rwoper.h"
 
-int writeToPress(int fd, char *msg, int nBytes, sem_t *syncSem){
-	if(nBytes >= PIPE_BUF){
+int writeToPress(void *arg, char *msg, int nBytes){
+	struct ThreadArguments *ta = arg;
+	if(nBytes >= 500){
 		fprintf(stderr, "Headline is too long!\n");
 		return 0;
 	}
 
-	flock(fd, LOCK_EX);
-	int wBytes = write(fd, msg, nBytes);
-	sem_wait(syncSem);
-	flock(fd, LOCK_UN);
+	sem_wait(&ta->write);
+	strcpy(ta->headline[ta->head], msg);
+	ta->head=(ta->head+1)%10;
+	sem_post(&ta->press);
+	sem_post(&ta->write);
 
 	return wBytes;
 }
