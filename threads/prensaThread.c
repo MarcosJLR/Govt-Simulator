@@ -23,8 +23,7 @@ struct ThreadArguments{
 	char dir[PATH_MAX];
 	int days;
 	pthread_t *exec, *legis, *judi;
-	sem_t write;
-	sem_t press;
+	sem_t write, press, full;
 	int head, end;
 };
 
@@ -80,8 +79,8 @@ int main(int argc, char **argv){
 
 		// Publish headline
 		printf("Dia %d: %s\n", day, ta.headline[j]);
-		strcpy(ta.headline[j], "\0");
 		j=(j+1)%10;
+		sem_post(&ta.full);
 		sem_post(&ta.press);
 		// Send signal to processes informing a day has passed
 		//kill(idExec, SIGUSR1);

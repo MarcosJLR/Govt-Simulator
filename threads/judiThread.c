@@ -71,7 +71,7 @@ void* judi(void *arg){
 			sprintf(msg,"Hola del Tribunal");
 			//writeToPress(pfd, msg, strlen(msg), syncSem);
 			sem_wait(&ta->write);
-			while(arg->headline[arg->end][0]!='\0');
+			sem_wait(&ta->full);
 			strcpy(ta->headline[ta->head], msg);
 			ta->head=(ta->head+1)%10;
 			sem_post(&ta->press);
