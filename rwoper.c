@@ -89,26 +89,33 @@ void cutString(const char *s, char *head, char *tail){
 	for(i = 0; i < n; i++){ 		
 		if(s[i] == ' ')
 			break;
+		if(s[i] == '\n'){
+			i--;
+			break;
+		}
 		head[i] = s[i];
 	}
 	head[i] = '\0';
 	strcpy(tail, s + i + 1);
 }
 
-void openGovtFile(FILE **file, const char *path, int mode, int closeOnly){
-	if(*file != NULL){
-		int fd = fileno(*file);
+void openGovtFile(FILE **file, FILE **aux, const char *path, int mode, int closeOnly){
+	if(*aux != NULL){
+		int fd = fileno(*aux);
 		flock(fd, LOCK_UN);
+		fclose(*aux);
 		fclose(*file);
 		*file = NULL;
+		*aux = NULL;
 	}
 	if(!closeOnly){
-		*file = fopen(path, "a+");
-		int fd = fileno(*file);
+		*aux = fopen(path, "r");
+		int fd = fileno(*aux);
 		if(mode)
 			flock(fd, LOCK_EX);
 		else
 			flock(fd, LOCK_SH);
+		*file = fopen(path, "a+");
 	}
 }
 
@@ -137,6 +144,7 @@ void eraseAction(const char *filePath, char *replicaName, char *actionName){
 	size_t len = MAX_ACT_LINE;
 
 	flock(fd, LOCK_SH);
+
 	while(getline(&line, &len, file) != -1){
 		if(strcmp(actionName, line) != 0){
 			fprintf(replica, "%s", line);
@@ -150,19 +158,19 @@ void eraseAction(const char *filePath, char *replicaName, char *actionName){
 				if(strcmp(line, "\n") == 0) break;
 		}
 	}
-	flock(fd, LOCK_UN);
-	fclose(file);
 
 	rewind(replica);
 
-	file = fopen(filePath, "w");
-	fd = fileno(file);
-
 	flock(fd, LOCK_EX);
+
+	FILE *file2 = fopen(filePath, "w");
+
 	while(getline(&line, &len, replica) != -1)
-		fprintf(file, "%s", line);
+		fprintf(file2, "%s", line);
+
 	flock(fd, LOCK_UN);
 
 	fclose(file);
+	fclose(file2);
 	fclose(replica);
 }
