@@ -33,6 +33,8 @@ int main(int argc, char **argv){
 	if(argc > 2)
 		strncpy(dir, argv[2], sizeof(dir));
 
+	printf("Holi\n");
+
 	key_t key = ftok("GovtStats", 42);
 	int shmid = shmget(key, 6*sizeof(int), 0666 | IPC_CREAT);
 	int *stats = (int *) shmat(shmid, NULL, 0);
@@ -147,11 +149,6 @@ int main(int argc, char **argv){
 		// Publish headline
 		printf("Dia %d: %s\n", day, buf);
 		fflush(stdout);
-
-		// Send signal to processes informing a day has passed
-		/*kill(idExec, SIGUSR1);
-		kill(idLeg, SIGUSR1);
-		kill(idJud, SIGUSR1);*/
 	}
 	
 	// Close pipe and semaphore
@@ -173,10 +170,12 @@ int main(int argc, char **argv){
 		perc[i]=(double)stats[i]*100/stats[3+i];
 	}
 
-
 	printf("Poder Ejecutivo   : %d acciones exitosas (%.2f%% de exito)\n\n", stats[0],perc[0]);
 	printf("Poder Legislativo : %d acciones exitosas (%.2f%% de exito)\n\n", stats[1],perc[1]);
 	printf("Poder Judicial    : %d acciones exitosas (%.2f%% de exito)\n\n", stats[2],perc[2]);
+
+	shmdt(stats);
+	shmctl(shmid,IPC_RMID,NULL); 
 
 	// Unlink semaphores and delete pipes
 	sem_unlink(PRESS_SYNC_SEM);
