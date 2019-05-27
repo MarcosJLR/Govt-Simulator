@@ -26,6 +26,7 @@ typedef struct threadArguments{
 	int head, end, days;
 	char dir[PATH_MAX];	
 	ContactInfo *c;
+	int stats[3];
 } ThreadArguments;
 
 #endif
