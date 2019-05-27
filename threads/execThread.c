@@ -138,6 +138,8 @@ void *execThread(void *arg){
 				strncpy(msg, action[nLines-2] + 7, sizeof(msg));
 			else
 				strncpy(msg, action[nLines-1] + 9, sizeof(msg));
+		
+			ta->stats[0] += success;
 		}
 		writeToPress(ta, msg);
 	}

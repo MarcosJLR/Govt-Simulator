@@ -136,6 +136,8 @@ void *judiThread(void *arg){
 				strncpy(msg, action[nLines-2] + 7, sizeof(msg));
 			else
 				strncpy(msg, action[nLines-1] + 9, sizeof(msg));
+
+			ta->stats[2] += success;
 		}
 		writeToPress(ta, msg);
 	}

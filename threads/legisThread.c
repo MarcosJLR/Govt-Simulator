@@ -120,7 +120,7 @@ void* legisThread(void *arg){
 		char msg[MAX_ACT_LINE];
 		if(nLines == 0){
 			// Ninguna accion fue escogida
-			sprintf(msg, JUD_IDDLE_MSG);
+			sprintf(msg, LEGIS_IDDLE_MSG);
 		}
 		else if(nLines < 3){
 			fprintf(stderr, "The Legislative Govt Plan has been corrupted\n");
@@ -136,6 +136,8 @@ void* legisThread(void *arg){
 				strncpy(msg, action[nLines-2] + 7, sizeof(msg));
 			else
 				strncpy(msg, action[nLines-1] + 9, sizeof(msg));
+
+			ta->stats[1] += success;
 		}
 		writeToPress(ta, msg);
 	}

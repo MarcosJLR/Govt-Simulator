@@ -64,6 +64,8 @@ int main(int argc, char **argv){
 	ta.c->legAnsCV = malloc(sizeof(pthread_cond_t));
 	ta.c->judAnsCV = malloc(sizeof(pthread_cond_t));
 
+	ta.stats[0] = ta.stats[1] = ta.stats[2] = 0;
+
 	// Init Executive
 	pthread_create(&exec, NULL, execThread, &ta); 
 
@@ -88,12 +90,15 @@ int main(int argc, char **argv){
 		sem_post(&ta.full);
 	}
 	ta.end = 0;
+
+	printf("Poder Ejecutivo   : %d acciones con exito\n\n", ta.stats[0]);
+	printf("Poder Legislativo : %d acciones con exito\n\n", ta.stats[1]);
+	printf("Poder Judicial    : %d acciones con exito\n\n", ta.stats[2]);
+
 	// Close pipe and semaphore
 	sem_destroy(&ta.press);
 	sem_destroy(&ta.write);
 	sem_destroy(&ta.full);
-
-	// Wait for the other processes to terminate
 
 	return 0;
 }
