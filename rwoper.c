@@ -90,8 +90,9 @@ void cutString(const char *s, char *head, char *tail){
 		if(s[i] == ' ')
 			break;
 		if(s[i] == '\n'){
-			i--;
-			break;
+			head[i] = '\0';
+			strcpy(tail, "\n");
+			return;
 		}
 		head[i] = s[i];
 	}

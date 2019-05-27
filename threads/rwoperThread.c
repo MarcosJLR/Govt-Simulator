@@ -87,6 +87,11 @@ void cutString(const char *s, char *head, char *tail){
 	for(i = 0; i < n; i++){ 		
 		if(s[i] == ' ')
 			break;
+		if(s[i] == '\n'){
+			head[i] = '\0';
+			strcpy(tail, "\n");
+			return;
+		}
 		head[i] = s[i];
 	}
 	head[i] = '\0';
