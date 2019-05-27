@@ -34,10 +34,10 @@ int main(int argc, char **argv){
 		strncpy(dir, argv[2], sizeof(dir));
 
 	key_t key = ftok("GovtStats", 42);
-	int shmid = shmget(key, 3*sizeof(int), 0666 | IPC_CREAT);
+	int shmid = shmget(key, 6*sizeof(int), 0666 | IPC_CREAT);
 	int *stats = (int *) shmat(shmid, NULL, 0);
 
-	stats[0] = stats[1] = stats[2] = 0;
+	stats[0] = stats[1] = stats[2] = stats[3] = stats[4] = stats[5] = 0;
 
 	// Named Pipe to retrieve headlines
 	mkfifo(PRESS_NAME, 0666);
@@ -168,9 +168,15 @@ int main(int argc, char **argv){
 	waitpid(idLeg, &status, 0);
 	waitpid(idJud, &status, 0);
 
-	printf("Poder Ejecutivo   : %d acciones con exito\n\n", stats[0]);
-	printf("Poder Legislativo : %d acciones con exito\n\n", stats[1]);
-	printf("Poder Judicial    : %d acciones con exito\n\n", stats[2]);
+	double perc[3];
+	for(int i=0;i<3;i++){
+		perc[i]=(double)stats[i]*100/stats[3+i];
+	}
+
+
+	printf("Poder Ejecutivo   : %d acciones exitosas (%.2f%% de exito)\n\n", stats[0],perc[0]);
+	printf("Poder Legislativo : %d acciones exitosas (%.2f%% de exito)\n\n", stats[1],perc[1]);
+	printf("Poder Judicial    : %d acciones exitosas (%.2f%% de exito)\n\n", stats[2],perc[2]);
 
 	// Unlink semaphores and delete pipes
 	sem_unlink(PRESS_SYNC_SEM);
