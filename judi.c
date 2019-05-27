@@ -22,7 +22,7 @@ void signalHandler(int sig){
 		else strcpy(ans, "N");
 
 		int fdToExec = open(JUD_EXEC_PIPE, O_WRONLY); 
-		write(fdToExec, ans, 1);
+		write(fdToExec, ans, 2);
 		close(fdToExec);
 	}
 	if(sig == SIGUSR2){
@@ -32,7 +32,7 @@ void signalHandler(int sig){
 		else strcpy(ans, "N");
 
 		int fdToLeg = open(JUD_LEG_PIPE, O_WRONLY); 
-		write(fdToLeg, ans, 1);
+		write(fdToLeg, ans, 2);
 		close(fdToLeg);
 	}
 }
@@ -47,12 +47,12 @@ int execAction(int nLines, char action[MAX_ACTION][MAX_ACT_LINE], char *dir, pid
 		if(strcmp(com, "exclusivo:") == 0){
 			strncpy(fileName, dir, sizeof(fileName));
 			strncat(fileName, inst, strlen(inst) - 1);
-			openGovtFile(&fp, &aux, fileName, 1, 0);
+			openGovtFile(&fp, fileName, 1, 0);
 		}
 		else if(strcmp(com, "inclusivo:") == 0){
 			strncpy(fileName, dir, sizeof(fileName));
 			strncat(fileName, inst, strlen(inst) - 1);
-			openGovtFile(&fp, &aux, fileName, 0, 0);
+			openGovtFile(&fp, fileName, 0, 0);
 		}
 		else if(strcmp(com, "leer:") == 0){
 			if(!readFromFile(fp, inst)){
@@ -78,7 +78,7 @@ int execAction(int nLines, char action[MAX_ACTION][MAX_ACT_LINE], char *dir, pid
 			if(strcmp(inst, "Congreso\n") == 0)
 				p = aprovalFrom(LEG_JUD_PIPE, idLeg, SIGUSR2);
 			else if(strcmp(inst, "Tribunal Supremo\n") != 0)
-				p = aprovalFrom(EXEC_JUD_PIPE, idJud, SIGUSR2);
+				p = aprovalFrom(EXEC_JUD_PIPE, idExec, SIGUSR2);
 			
 			if(!p){
 				success = 0;
@@ -100,7 +100,7 @@ int execAction(int nLines, char action[MAX_ACTION][MAX_ACT_LINE], char *dir, pid
 		}
 	}
 
-	openGovtFile(&fp, &aux, NULL, 0, 1);
+	openGovtFile(&fp, NULL, 0, 1);
 
 	return success;
 }
@@ -172,8 +172,8 @@ int main(int argc, char **argv){
 			else
 				strncpy(msg, action[nLines-1] + 9, sizeof(msg));
 			
-			if(success)
-				eraseAction(planPath, "/tmp/LegislativoReplica", action[0]);
+			//if(success)
+				//eraseAction(planPath, "/tmp/LegislativoReplica", action[0]);
 		}
 		writeToPress(pfd, msg, strlen(msg) + 1, syncSem2);
 	}

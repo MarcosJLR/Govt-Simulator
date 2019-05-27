@@ -38,22 +38,21 @@ void signalHandler(int sig){
 }
 
 int execAction(int nLines, char action[MAX_ACTION][MAX_ACT_LINE], char *dir, pid_t idExec, pid_t idLeg, pid_t idJud){
-	FILE *fp = NULL, *aux = NULL;
+	FILE *fp = NULL;
 	int success = 1;
 	char com[20], inst[MAX_ACT_LINE], fileName[PATH_MAX];
 
 	for(int i = 1; i < nLines-2; i++){
 		cutString(action[i],com,inst);
-		printf("\n%s\n", action[i]);
 		if(strcmp(com, "exclusivo:") == 0){
 			strncpy(fileName, dir, sizeof(fileName));
 			strncat(fileName, inst, strlen(inst) - 1);
-			openGovtFile(&fp, &aux, fileName, 1, 0);
+			openGovtFile(&fp, fileName, 1, 0);
 		}
 		else if(strcmp(com, "inclusivo:") == 0){
 			strncpy(fileName, dir, sizeof(fileName));
 			strncat(fileName, inst, strlen(inst) - 1);
-			openGovtFile(&fp, &aux, fileName, 0, 0);
+			openGovtFile(&fp, fileName, 0, 0);
 		}
 		else if(strcmp(com, "leer:") == 0){
 			if(!readFromFile(fp, inst)){
@@ -101,7 +100,7 @@ int execAction(int nLines, char action[MAX_ACTION][MAX_ACT_LINE], char *dir, pid
 		}
 	}
 
-	openGovtFile(&fp, &aux, NULL, 0, 1);
+	openGovtFile(&fp, NULL, 0, 1);
 
 	return success;
 }
@@ -173,8 +172,8 @@ int main(int argc, char **argv){
 			else
 				strncpy(msg, action[nLines-1] + 9, sizeof(msg));
 
-			if(success)
-				eraseAction(planPath, "/tmp/EjecutivoReplica", action[0]);
+			//if(success)
+				//eraseAction(planPath, "/tmp/EjecutivoReplica", action[0]);
 		}
 		writeToPress(pfd, msg, strlen(msg) + 1, syncSem2);
 	}

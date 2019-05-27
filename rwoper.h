@@ -34,7 +34,7 @@ int writeToFile(FILE *f, char *s);
 // Release the locks on file and close it, and then open the file 
 // with name path with locks on mode (0 inclusive)
 // If closeOnly is set, it won't open a new file
-void openGovtFile(FILE **file, FILE **aux, const char *path, int mode, int closeOnly);
+void openGovtFile(FILE **file, const char *path, int mode, int closeOnly);
 
 // Requests aproval from proces with PID = aproverID and returns the answer
 int aprovalFrom(const char *pipeName, pid_t aproverID, int sig);

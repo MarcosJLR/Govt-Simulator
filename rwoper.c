@@ -99,23 +99,20 @@ void cutString(const char *s, char *head, char *tail){
 	strcpy(tail, s + i + 1);
 }
 
-void openGovtFile(FILE **file, FILE **aux, const char *path, int mode, int closeOnly){
-	if(*aux != NULL){
-		int fd = fileno(*aux);
+void openGovtFile(FILE **file, const char *path, int mode, int closeOnly){
+	if(*file != NULL){
+		int fd = fileno(*file);
 		flock(fd, LOCK_UN);
-		fclose(*aux);
 		fclose(*file);
 		*file = NULL;
-		*aux = NULL;
 	}
 	if(!closeOnly){
-		*aux = fopen(path, "r");
-		int fd = fileno(*aux);
+		*file = fopen(path, "a+");
+		int fd = fileno(*file);
 		if(mode)
 			flock(fd, LOCK_EX);
 		else
 			flock(fd, LOCK_SH);
-		*file = fopen(path, "a+");
 	}
 }
 
