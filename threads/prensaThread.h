@@ -23,7 +23,7 @@ typedef struct contactInfo{
 typedef struct threadArguments{
 	char headline[10][MAX_ACT_LINE];
 	sem_t write, press, full;
-	int head, end, day;
+	int head, end, days;
 	char dir[PATH_MAX];	
 	ContactInfo *c;
 	int stats[6];
