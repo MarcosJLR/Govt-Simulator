@@ -116,6 +116,7 @@ void *judiThread(void *arg){
 	strcat(planPath, "Judicial.acc");
 
 	while(ta->end){
+		ta->stats[5]++;
 		int nLines = readAction(planPath, action);
 		char msg[MAX_ACT_LINE];
 		if(nLines == 0){

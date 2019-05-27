@@ -116,6 +116,7 @@ void* legisThread(void *arg){
 	strcat(planPath, "Legislativo.acc");
 
 	while(ta->end){
+		ta->stats[4]++;
 		int nLines = readAction(planPath, action);
 		char msg[MAX_ACT_LINE];
 		if(nLines == 0){
