@@ -4,6 +4,8 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/file.h>
+#include <sys/shm.h>
+#include <sys/ipc.h>
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
@@ -116,6 +118,10 @@ int main(int argc, char **argv){
 	char planPath[PATH_MAX];
 	char dir[PATH_MAX];
 
+	key_t key = ftok("GovtStats", 42);
+	int shmid = shmget(key, 3*sizeof(int), 0666 | IPC_CREAT);
+	int *stats = (int *) shmat(shmid, NULL, 0);
+
 	// Path of directory where Govt. files exist
 	if(argc > 1)
 		strncpy(dir, argv[1], sizeof(dir));
@@ -171,6 +177,8 @@ int main(int argc, char **argv){
 				strncpy(msg, action[nLines-2] + 7, sizeof(msg));		
 			else
 				strncpy(msg, action[nLines-1] + 9, sizeof(msg));
+
+			stats[0] += success;
 
 			//if(success)
 				//eraseAction(planPath, "/tmp/EjecutivoReplica", action[0]);

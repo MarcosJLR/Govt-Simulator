@@ -4,6 +4,8 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/file.h>
+#include <sys/shm.h>
+#include <sys/ipc.h>
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
@@ -30,6 +32,12 @@ int main(int argc, char **argv){
 	// Path of directory where Govt. files exist
 	if(argc > 2)
 		strncpy(dir, argv[2], sizeof(dir));
+
+	key_t key = ftok("GovtStats", 42);
+	int shmid = shmget(key, 3*sizeof(int), 0666 | IPC_CREAT);
+	int *stats = (int *) shmat(shmid, NULL, 0);
+
+	stats[0] = stats[1] = stats[2] = 0;
 
 	// Named Pipe to retrieve headlines
 	mkfifo(PRESS_NAME, 0666);
@@ -159,6 +167,10 @@ int main(int argc, char **argv){
 	waitpid(idExec, &status, 0);
 	waitpid(idLeg, &status, 0);
 	waitpid(idJud, &status, 0);
+
+	printf("Poder Ejecutivo   : %d acciones con exito\n\n", stats[0]);
+	printf("Poder Legislativo : %d acciones con exito\n\n", stats[1]);
+	printf("Poder Judicial    : %d acciones con exito\n\n", stats[2]);
 
 	// Unlink semaphores and delete pipes
 	sem_unlink(PRESS_SYNC_SEM);
