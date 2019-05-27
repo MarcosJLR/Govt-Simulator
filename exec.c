@@ -119,7 +119,7 @@ int main(int argc, char **argv){
 	char dir[PATH_MAX];
 
 	key_t key = ftok("GovtStats", 42);
-	int shmid = shmget(key, 3*sizeof(int), 0666 | IPC_CREAT);
+	int shmid = shmget(key, 6*sizeof(int), 0666 | IPC_CREAT);
 	int *stats = (int *) shmat(shmid, NULL, 0);
 
 	// Path of directory where Govt. files exist
@@ -157,6 +157,7 @@ int main(int argc, char **argv){
 	srandom(time(NULL));
 
 	while(1){
+		stats[3]++;
 		int nLines = readAction(planPath, action);
 		char msg[MAX_ACT_LINE];
 		if(nLines == 0){

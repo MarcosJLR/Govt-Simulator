@@ -90,10 +90,14 @@ int main(int argc, char **argv){
 		sem_post(&ta.full);
 	}
 	ta.end = 0;
+	double perc[3];
+	for(int i=0;i<3;i++){
+		perc[i]=(double)ta.stats[i]*100/ta.stats[3+i];
+	}
 
-	printf("Poder Ejecutivo   : %d acciones con exito\n\n", ta.stats[0]);
-	printf("Poder Legislativo : %d acciones con exito\n\n", ta.stats[1]);
-	printf("Poder Judicial    : %d acciones con exito\n\n", ta.stats[2]);
+	printf("Poder Ejecutivo   : %d acciones exitosas (%.2f%% de exito)\n\n", ta.stats[0],perc[0]);
+	printf("Poder Legislativo : %d acciones exitosas (%.2f%% de exito)\n\n", ta.stats[1],perc[1]);
+	printf("Poder Judicial    : %d acciones exitosas (%.2f%% de exito)\n\n", ta.stats[2],perc[2]);
 
 	// Close pipe and semaphore
 	sem_destroy(&ta.press);

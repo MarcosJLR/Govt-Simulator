@@ -118,6 +118,7 @@ void *execThread(void *arg){
 	strcat(planPath, "Ejecutivo.acc");
 
 	while(ta->end){
+		ta->stats[3]++;
 		int nLines = readAction(planPath, action);
 		char msg[MAX_ACT_LINE];
 		if(nLines == 0){
