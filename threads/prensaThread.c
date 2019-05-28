@@ -64,7 +64,7 @@ int main(int argc, char **argv){
 	ta.c->legAnsCV = malloc(sizeof(pthread_cond_t));
 	ta.c->judAnsCV = malloc(sizeof(pthread_cond_t));
 
-	ta.stats[0] = ta.stats[1] = ta.stats[2] = 0;
+	ta.stats[0] = ta.stats[1] = ta.stats[2] = ta.stats[3] = ta.stats[4] = ta.stats[5] = 0;
 
 	// Init Executive
 	pthread_create(&exec, NULL, execThread, &ta); 
